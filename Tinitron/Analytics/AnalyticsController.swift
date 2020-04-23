@@ -82,6 +82,7 @@ class AnalyticsController: UITableViewController {
 
     // MARK: Refresh Control
     @IBAction func refresh(_ sender: UIRefreshControl) {
+        tableView.restore()
         view.showAnimatedSkeleton()
         chartView.data = nil
 
@@ -131,6 +132,14 @@ extension AnalyticsController {
 // MARK: - UITableViewDataSource
 extension AnalyticsController {
     override func numberOfSections(in tableView: UITableView) -> Int {
+        if viewModel!.links.isEmpty {
+            tableView.tableHeaderView?.isHidden = true
+            tableView.setEmptyMessage("No Analytics Available")
+        } else {
+            tableView.tableHeaderView?.isHidden = false
+            tableView.restore()
+        }
+
         return sections.count
     }
 

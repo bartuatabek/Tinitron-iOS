@@ -30,6 +30,8 @@ class LinkDetailsController: UITableViewController {
     @IBOutlet weak var expirationDateTextField: UITextField!
     @IBOutlet weak var passwordTextField: FormTextField!
 
+    @IBOutlet weak var saveChangesButton: LGButton!
+
     override func viewDidLoad() {
         super.viewDidLoad()
         viewModel?.controller = self
@@ -46,16 +48,7 @@ class LinkDetailsController: UITableViewController {
         datePickerView.addTarget(self, action: #selector(handleDatePicker(sender:)), for: .valueChanged)
         expirationDateTextField.inputView = datePickerView
         expirationDateTextField.keyboardToolbar.doneBarButton.setTarget(self, action: #selector(doneButtonClicked))
-
-        titleTextField.text = link?.title
-        creationDateLabel.text = dateFormatter.string(from: link!.creationDate)
-        originalURLLabel.text = link?.originalURL
-        shortURLTextField.text = link?.shortURL
-        expirationDateTextField.text = dateFormatter.string(from: link!.expirationDate)
-        passwordTextField.text = link?.password
-        checkExpiration()
-
-        key = link?.shortURL
+        refreshUI()
     }
 
     // MARK: - ViewController Functions
@@ -66,6 +59,39 @@ class LinkDetailsController: UITableViewController {
         }
     }
 
+    fileprivate func refreshUI() {
+        titleTextField.text = link?.title
+        creationDateLabel.text = dateFormatter.string(from: link!.creationDate)
+        originalURLLabel.text = link?.originalURL
+        shortURLTextField.text = link?.shortURL
+
+        if link!.isExpired {
+            shortURLTextField.textColor = .systemPink
+
+            titleTextField.isEnabled = false
+            shortURLTextField.isEnabled = false
+            expirationDateTextField.isEnabled = false
+            passwordTextField.isEnabled = false
+            saveChangesButton.alpha = 0.5
+            saveChangesButton.isEnabled = false
+        } else {
+            shortURLTextField.textColor = .link
+
+            titleTextField.isEnabled = true
+            shortURLTextField.isEnabled = true
+            expirationDateTextField.isEnabled = true
+            passwordTextField.isEnabled = true
+            saveChangesButton.alpha = 1
+            saveChangesButton.isEnabled = true
+        }
+
+        expirationDateTextField.text = dateFormatter.string(from: link!.expirationDate)
+        passwordTextField.text = link?.password
+        checkExpiration()
+
+        key = link?.shortURL
+    }
+
     // MARK: Refresh Control
     @IBAction func refresh(_ sender: UIRefreshControl) {
         view.showAnimatedSkeleton()
@@ -73,6 +99,7 @@ class LinkDetailsController: UITableViewController {
         viewModel?.fetchLink(shortURL: key!, completion: { (finished, success, fetchedLink) in
             if finished && success {
                 self.link = fetchedLink
+                self.refreshUI()
             }
 
             if finished {
@@ -189,6 +216,12 @@ extension LinkDetailsController {
         }
 
         tableView.deselectRow(at: indexPath, animated: true)
+    }
+
+    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        if section == 1 && link!.isExpired {
+            return "Expired links cannot be modifed or accessed. They can only be viewed or deleted."
+        } else { return nil }
     }
 
     override func tableView(_ tableView: UITableView, shouldShowMenuForRowAt indexPath: IndexPath) -> Bool {

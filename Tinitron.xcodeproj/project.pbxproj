@@ -49,6 +49,7 @@
 		8DCF2E532444E4E00011B9E3 /* CreateLinkController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DCF2E522444E4E00011B9E3 /* CreateLinkController.swift */; };
 		8DCF2E55244517DE0011B9E3 /* LinkDetailsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DCF2E54244517DE0011B9E3 /* LinkDetailsController.swift */; };
 		8DD834D0243E05950070D73B /* Home.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8DD834CF243E05950070D73B /* Home.storyboard */; };
+		8DED2EB2245234F000F78EF5 /* LinksController+Updating.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DED2EB1245234EF00F78EF5 /* LinksController+Updating.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -109,6 +110,7 @@
 		8DCF2E522444E4E00011B9E3 /* CreateLinkController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateLinkController.swift; sourceTree = "<group>"; };
 		8DCF2E54244517DE0011B9E3 /* LinkDetailsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkDetailsController.swift; sourceTree = "<group>"; };
 		8DD834CF243E05950070D73B /* Home.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Home.storyboard; sourceTree = "<group>"; };
+		8DED2EB1245234EF00F78EF5 /* LinksController+Updating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LinksController+Updating.swift"; sourceTree = "<group>"; };
 		8DF1EC4E24508FDE0060201A /* NotificationCenter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NotificationCenter.framework; path = System/Library/Frameworks/NotificationCenter.framework; sourceTree = SDKROOT; };
 		C25F6474B09FAEB9F8D9466D /* Pods-Tinitron.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tinitron.release.xcconfig"; path = "Target Support Files/Pods-Tinitron/Pods-Tinitron.release.xcconfig"; sourceTree = "<group>"; };
 		C947C60288A3DAE8D299808B /* Pods_Tinitron.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Tinitron.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -199,6 +201,7 @@
 			children = (
 				8D772D4B2442670500BFFF01 /* LinksController.swift */,
 				8D2C1D07244CD0AA0081D28A /* LinksController+Restore.swift */,
+				8DED2EB1245234EF00F78EF5 /* LinksController+Updating.swift */,
 				8D2C1D09244CD4440081D28A /* ResultsTableController.swift */,
 			);
 			path = "Links Table";
@@ -423,6 +426,7 @@
 				8DCF2E532444E4E00011B9E3 /* CreateLinkController.swift in Sources */,
 				8D509214244D9CBA00B79344 /* LinkAnalyticsController.swift in Sources */,
 				8DCD241C244DE08900C71FE9 /* XYMarkerView.swift in Sources */,
+				8DED2EB2245234F000F78EF5 /* LinksController+Updating.swift in Sources */,
 				8D772D4A2442632D00BFFF01 /* Link.swift in Sources */,
 				8D729554243DE9BE00030233 /* Extensions.swift in Sources */,
 				8D72955A243DEAE700030233 /* AuthSignInController.swift in Sources */,
@@ -596,7 +600,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Tinitron/Tinitron.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 74VAU57J78;
 				INFOPLIST_FILE = Tinitron/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -618,7 +622,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Tinitron/Tinitron.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 74VAU57J78;
 				INFOPLIST_FILE = Tinitron/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (

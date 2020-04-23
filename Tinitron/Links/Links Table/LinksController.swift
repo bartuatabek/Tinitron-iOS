@@ -7,11 +7,13 @@
 //
 
 import UIKit
+import Firebase
 import SkeletonView
 
 class LinksController: UITableViewController {
 
     let formatter = DateFormatter()
+    let defaults = UserDefaults.standard
 
     var filter = false
     var selectedLink: Link?
@@ -45,9 +47,11 @@ class LinksController: UITableViewController {
 
         resultsTableController =
         self.storyboard?.instantiateViewController(withIdentifier: "ResultsTableController") as? ResultsTableController
+        resultsTableController.delegate = self
+        resultsTableController.viewModel = viewModel
 
         searchController = UISearchController(searchResultsController: resultsTableController)
-//        searchController.searchResultsUpdater = self
+        searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.autocapitalizationType = .none
         searchController.searchBar.delegate = self // Monitor when the search button is tapped.
@@ -135,6 +139,18 @@ class LinksController: UITableViewController {
         return sectionIndex
     }
 
+    fileprivate func restorePinnedItems() {
+        if let pinnedItems = defaults.stringArray(forKey: Auth.auth().currentUser!.uid) {
+            var pinnedLinks = [Link]()
+
+            for section in sections {
+                pinnedLinks.append(contentsOf: section.filter { pinnedItems.contains($0.shortURL) })
+            }
+
+            sections[0] = pinnedLinks
+        }
+    }
+
     // MARK: - Button actions
     @IBAction func filter(_ sender: Any) {
         filter.toggle()
@@ -209,11 +225,15 @@ class LinksController: UITableViewController {
 
     // MARK: Refresh Control
     @IBAction func refresh(_ sender: UIRefreshControl) {
+        tableView.restore()
         view.showAnimatedSkeleton()
         viewModel?.fetchLinks(completion: { (finished, success, fetchedLinks) in
             if finished && success {
                 self.viewModel?.links = fetchedLinks!
+                self.sections.removeAll()
                 self.sections = self.getSectionsBasedOnDate(links: fetchedLinks!)
+                self.sections.insert([Link](), at: 0)
+                self.restorePinnedItems()
             }
 
             if finished {
@@ -273,10 +293,14 @@ extension LinksController {
 
     override func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         var pin: UIContextualAction
+        var pinnedItems = defaults.stringArray(forKey: Auth.auth().currentUser!.uid) ?? [String]()
+
         if indexPath.section == (self.filter ? 1 : 0) {
             // Unpin
             pin = UIContextualAction(style: .normal, title: "Unpin") { (_, _, completionHandler) in
                 print("index path of edit: \(indexPath)")
+                pinnedItems = pinnedItems.filter {$0 != self.sections[indexPath.section][indexPath.row].shortURL}
+                self.defaults.set(pinnedItems, forKey: Auth.auth().currentUser!.uid)
                 let sectionIndex = self.unpinItem(link: self.sections[indexPath.section].remove(at: indexPath.row))
                 tableView.reloadSections(IndexSet(arrayLiteral: self.filter ? 1 : 0, sectionIndex), with: .automatic)
                 completionHandler(true)
@@ -287,6 +311,8 @@ extension LinksController {
             // Pin
             pin = UIContextualAction(style: .normal, title: "Pin") { (_, _, completionHandler) in
                 print("index path of edit: \(indexPath)")
+                pinnedItems.append(self.sections[indexPath.section][indexPath.row].shortURL)
+                self.defaults.set(pinnedItems, forKey: Auth.auth().currentUser!.uid)
                 self.sections[self.filter ? 1 : 0].append(self.sections[indexPath.section].remove(at: indexPath.row))
                 tableView.reloadSections(IndexSet(arrayLiteral: self.filter ? 1 : 0, indexPath.section), with: .fade)
                 completionHandler(true)
@@ -413,6 +439,12 @@ extension LinksController {
 // MARK: - UITableViewDataSource
 extension LinksController {
     override func numberOfSections(in tableView: UITableView) -> Int {
+        if viewModel!.links.isEmpty {
+            tableView.setEmptyMessage("No Links\n Tap ⊕ to create a new link.")
+        } else {
+            tableView.restore()
+        }
+
         return sections.count
     }
 
