@@ -631,10 +631,9 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <textField opaque="NO" tag="1" contentMode="scaleToFill" verticalCompressionResistancePriority="755" contentHorizontalAlignment="left" contentVerticalAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="FlX-4h-pPd" customClass="FormTextField" customModule="Tinitron">
-                                <rect key="frame" x="7.3333333333333428" y="319" width="360.33333333333326" height="21"/>
+                                <rect key="frame" x="16" y="319" width="343" height="21"/>
                                 <constraints>
                                     <constraint firstAttribute="width" relation="lessThanOrEqual" constant="600" id="X8P-A5-kY6"/>
-                                    <constraint firstAttribute="width" secondItem="FlX-4h-pPd" secondAttribute="height" multiplier="343:20" id="jmy-N4-nMW"/>
                                 </constraints>
                                 <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
                                 <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" returnKeyType="done" secureTextEntry="YES" textContentType="password"/>

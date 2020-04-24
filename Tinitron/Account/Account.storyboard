@@ -949,7 +949,7 @@
                                     </constraints>
                                 </imageView>
                             </subviews>
-                            <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                            <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
                             <constraints>
                                 <constraint firstAttribute="bottom" secondItem="UQP-cc-lYB" secondAttribute="bottom" constant="75" id="A6N-9D-LbX"/>
                                 <constraint firstItem="3PE-yn-hiB" firstAttribute="centerX" secondItem="Y8i-ju-hlM" secondAttribute="centerX" id="IKZ-sF-EDb"/>
@@ -1051,8 +1051,8 @@
         <image name="gear" catalog="system" width="128" height="119"/>
         <image name="hammer.fill" catalog="system" width="128" height="115"/>
         <image name="info.circle" catalog="system" width="128" height="121"/>
-        <image name="link" width="170.66667175292969" height="170.66667175292969"/>
         <image name="link" catalog="system" width="128" height="116"/>
+        <image name="link" width="170.66667175292969" height="170.66667175292969"/>
         <image name="person" catalog="system" width="128" height="117"/>
         <image name="person.crop.circle" catalog="system" width="128" height="121"/>
         <image name="person.fill" catalog="system" width="128" height="120"/>

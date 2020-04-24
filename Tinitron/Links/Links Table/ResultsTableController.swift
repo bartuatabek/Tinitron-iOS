@@ -38,6 +38,12 @@ class ResultsTableController: UITableViewController {
 
     // MARK: - UITableViewDataSource
     override func numberOfSections(in tableView: UITableView) -> Int {
+        if filteredLinks.isEmpty {
+            tableView.setEmptyMessage("No Search Results")
+        } else {
+            tableView.restore()
+        }
+
         return 1
     }
 
