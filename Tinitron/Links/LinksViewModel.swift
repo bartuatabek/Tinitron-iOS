@@ -6,6 +6,7 @@
 //  Copyright © 2020 Bartu Atabek. All rights reserved.
 //
 
+import Firebase
 import Alamofire
 import Foundation
 import SwiftyJSON
@@ -17,14 +18,14 @@ protocol LinksViewModeling {
     var analyticsData: [LinkAnalytics] { get set }
 
     func createNewLink(for link: Link, completion: @escaping (Bool, Bool, Link?) -> Void)
-    func updateLink(link: Link, completion: @escaping (Bool, Bool) -> Void)
+    func updateLink(shortURL: String, link: Link, completion: @escaping (Bool, Bool) -> Void)
     func deleteLinks(links: [String], completion: @escaping (Bool, Bool) -> Void)
     func expireLinks(links: [String], completion: @escaping (Bool, Bool) -> Void)
 
-    func fetchLinks(completion: @escaping (Bool, Bool, [Link]?) -> Void)
+    func fetchLinks(pageNo: Int, completion: @escaping (Bool, Bool, [Link]?) -> Void)
     func fetchLink(shortURL: String, completion: @escaping (Bool, Bool, Link?) -> Void)
 
-    func fetchLinkAnalytics(completion: @escaping (Bool, Bool, [LinkAnalytics]?) -> Void)
+    func fetchLinkAnalytics(pageNo: Int, completion: @escaping (Bool, Bool, [LinkAnalytics]?) -> Void)
     func fetchLinkAnalytic(for link: String, completion: @escaping (Bool, Bool, LinkAnalytics?) -> Void)
 }
 
@@ -38,87 +39,353 @@ class LinksViewModel: LinksViewModeling {
 
     // MARK: - Initialization
     init() {
-        links = generateRandomLinks(count: 100)
-        analyticsData = generateAllAnalytics(for: links)
+        links = [Link]() //generateRandomLinks(count: 100)
+        analyticsData = [LinkAnalytics]() //generateAllAnalytics(for: links)
     }
 
     func createNewLink(for link: Link, completion: @escaping (Bool, Bool, Link?) -> Void) {
-        // TODO: Create and save link
+        let currentUser = Auth.auth().currentUser
+        currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
+            if let error = error {
+                print("Cannot get token: ", error )
+                return
+            }
 
-        let originalURL = "https://www.\(randomWord()).com"
-        let title = Bool.random() ? originalURL : randomWord() + " " + randomWord()
-        let creationDate = Date.randomWithinDaysBeforeToday(14)
-        let expirationDate = Bool.random() ?Calendar.current.date(byAdding: .day, value: -5, to: Date()) : Calendar.current.date(byAdding: .day, value: 30, to: creationDate)
-        let link = Link(title: title, creationDate: creationDate, originalURL: originalURL, shortURL: "tinytron.ml/\(randomString(length: 7))", expirationDate: expirationDate!, password: nil)
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions.insert(.withFractionalSeconds)
 
-        analyticsData.append(generateRandomLinkAnalytics(id: link.shortURL))
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            completion(true, true, link)
+            var parameters: [String: String?] = [
+                "title": link.title,
+                "originalURL": link.originalURL,
+                "creationDate": formatter.string(from: link.creationDate),
+                "expirationDate": formatter.string(from: link.expirationDate)
+            ]
+
+            if !link.shortURL.isEmpty {
+                parameters["shortURL"] = link.shortURL
+            }
+
+            if !link.password!.isEmpty {
+                parameters["password"] = link.password
+            }
+
+            let headers: HTTPHeaders = [
+                "Authorization": "Bearer \(idToken ?? "")"
+            ]
+
+            AF.request("http://34.67.248.87:8080/links", method: .post, parameters: parameters, encoder: JSONParameterEncoder.default, headers: headers)
+                .validate(statusCode: 200..<300)
+                .responseJSON { response in
+//                    debugPrint(response)
+                    switch response.result {
+                    case .success(let value):
+                        let dateFormatter = DateFormatter()
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+
+                        let json = JSON(value)
+                        let title = json["title"].rawString()
+                        let creationDate = dateFormatter.date(from: json["creationDate"].rawString()!)
+                        let shortURL = json["shortURL"].rawString()
+                        let originalURL = json["originalURL"].rawString()
+                        let expirationDate = dateFormatter.date(from: json["expirationDate"].rawString()!)
+                        let password = json["password"].rawString() == "null" ? nil : json["password"].rawString()
+
+                        let link = Link(title: title!, creationDate: creationDate!, originalURL: originalURL!, shortURL: shortURL!, expirationDate: expirationDate!, password: password)
+                        completion(true, true, link)
+                    case .failure(let error):
+                        print(error)
+                        self.controller?.showAlert(withTitle: "Link Generation Failed", message: error.localizedDescription, option1: "OK", option2: nil)
+                        completion(true, false, nil)
+                    }
+            }
         }
     }
 
-    func updateLink(link: Link, completion: @escaping (Bool, Bool) -> Void) {
-        // TODO: Call API to update Link
+    func updateLink(shortURL: String, link: Link, completion: @escaping (Bool, Bool) -> Void) {
+        let currentUser = Auth.auth().currentUser
+        currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
+            if let error = error {
+                print("Cannot get token: ", error )
+                return
+            }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            completion(true, true)
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions.insert(.withFractionalSeconds)
+
+            var parameters: [String: String?] = [
+                "title": link.title,
+                "shortURL": link.shortURL,
+                "expirationDate": formatter.string(from: link.expirationDate)
+            ]
+
+            if let password = link.password {
+                parameters["password"] = password
+            }
+
+            let headers: HTTPHeaders = [
+                "Authorization": "Bearer \(idToken ?? "")"
+            ]
+
+            AF.request("http://34.67.248.87:8080/links/" + shortURL, method: .put, parameters: parameters, encoder: JSONParameterEncoder.default, headers: headers)
+                .validate(statusCode: 200..<300)
+                .responseJSON { response in
+//                    debugPrint(response)
+                    switch response.result {
+                    case .success:
+                        completion(true, true)
+                    case .failure(let error):
+                        print(error)
+                        self.controller?.showAlert(withTitle: "Update Failed", message: error.localizedDescription, option1: "OK", option2: nil)
+                        completion(true, false)
+                    }
+            }
         }
     }
 
     func deleteLinks(links: [String], completion: @escaping (Bool, Bool) -> Void) {
-        // TODO: Call API to delete links
+        let currentUser = Auth.auth().currentUser
+        currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
+            if let error = error {
+                print("Cannot get token: ", error )
+                return
+            }
 
-        for link in links {
-            let index = analyticsData.firstIndex(where: { $0.id == link })
-            analyticsData.remove(at: index!)
-        }
+            let parameters: [String: [String]] = [
+                "links": links
+            ]
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            completion(true, true)
+            let headers: HTTPHeaders = [
+                "Authorization": "Bearer \(idToken ?? "")"
+            ]
+
+            AF.request("http://34.67.248.87:8080/links/delete", method: .delete, parameters: parameters, encoder: JSONParameterEncoder.default, headers: headers)
+                .validate(statusCode: 200..<300)
+                .responseJSON { response in
+//                    debugPrint(response)
+                    switch response.result {
+                    case .success:
+                        completion(true, true)
+                    case .failure(let error):
+                        print(error)
+                        self.controller?.showAlert(withTitle: "Deletion Failed", message: error.localizedDescription, option1: "OK", option2: nil)
+                        completion(true, false)
+                    }
+            }
         }
     }
 
     func expireLinks(links: [String], completion: @escaping (Bool, Bool) -> Void) {
-        // TODO: Call API to expire links
+        let currentUser = Auth.auth().currentUser
+        currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
+            if let error = error {
+                print("Cannot get token: ", error )
+                return
+            }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            completion(true, true)
+            let parameters: [String: [String]] = [
+                "links": links
+            ]
+
+            let headers: HTTPHeaders = [
+                "Authorization": "Bearer \(idToken ?? "")"
+            ]
+
+            AF.request("http://34.67.248.87:8080/links/expire", method: .post, parameters: parameters, encoder: JSONParameterEncoder.default, headers: headers)
+                .validate(statusCode: 200..<300)
+                .responseJSON { response in
+//                    debugPrint(response)
+                    switch response.result {
+                    case .success:
+                        completion(true, true)
+                    case .failure(let error):
+                        print(error)
+                        self.controller?.showAlert(withTitle: "Operation Failed", message: error.localizedDescription, option1: "OK", option2: nil)
+                        completion(true, false)
+                    }
+            }
         }
     }
 
     // MARK: - Fetch Link Data
-    func fetchLinks(completion: @escaping (Bool, Bool, [Link]?) -> Void) {
-        // TODO: Refresh links from API
+    func fetchLinks(pageNo: Int, completion: @escaping (Bool, Bool, [Link]?) -> Void) {
+        let currentUser = Auth.auth().currentUser
+        currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
+            if let error = error {
+                print("Cannot get token: ", error )
+                return
+            }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            completion(true, true, self.links)
+            let parameters: Parameters = [
+                "pageNo": pageNo
+            ]
+
+            let headers: HTTPHeaders = [
+                "Authorization": "Bearer \(idToken ?? "")"
+            ]
+
+            AF.request("http://34.67.248.87:8080/links/users/" + currentUser!.uid, method: .get, parameters: parameters, headers: headers)
+                .validate(statusCode: 200..<300)
+                .responseJSON { response in
+//                    debugPrint(response)
+                    switch response.result {
+                    case .success(let value):
+                        let dateFormatter = DateFormatter()
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+                        var fetchedLinks = [Link]()
+
+                        let links = JSON(value).arrayValue
+                        for link in links {
+                            let title = link["title"].rawString() == "null" ? link["originalURL"].rawString() : link["title"].rawString()
+                            let creationDate = dateFormatter.date(from: link["creationDate"].rawString()!)
+                            let shortURL = link["shortURL"].rawString()
+                            let originalURL = link["originalURL"].rawString()
+                            let expirationDate = dateFormatter.date(from: link["expirationDate"].rawString()!)
+                            let password = link["password"].rawString() == "null" ? nil : link["password"].rawString()
+                            let fetchedLink = Link(title: title!, creationDate: creationDate!, originalURL: originalURL!, shortURL: shortURL!, expirationDate: expirationDate!, password: password)
+                            fetchedLinks.append(fetchedLink)
+                        }
+
+                        completion(true, true, fetchedLinks)
+                    case .failure(let error):
+                        print(error)
+                        self.controller?.showAlert(withTitle: "Fetch Failed", message: error.localizedDescription, option1: "OK", option2: nil)
+                        completion(true, false, nil)
+                    }
+            }
         }
     }
 
     func fetchLink(shortURL: String, completion: @escaping (Bool, Bool, Link?) -> Void) {
-        // TODO: Refresh link information from API
+        let currentUser = Auth.auth().currentUser
+        currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
+            if let error = error {
+                print("Cannot get token: ", error )
+                return
+            }
 
-        let link = links.first(where: { $0.shortURL == shortURL })
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            completion(true, true, link)
+            let headers: HTTPHeaders = [
+                "Authorization": "Bearer \(idToken ?? "")"
+            ]
+
+            AF.request("http://34.67.248.87:8080/links/" + shortURL, method: .get, headers: headers)
+                .validate(statusCode: 200..<300)
+                .responseJSON { response in
+                    //debugPrint(response)
+                    switch response.result {
+                    case .success(let value):
+                        let dateFormatter = DateFormatter()
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+
+                        let json = JSON(value)
+                        let title = json["title"].rawString() == "null" ? json["originalURL"].rawString() : json["title"].rawString()
+                        let creationDate = dateFormatter.date(from: json["creationDate"].rawString()!)
+                        let shortURL = json["shortURL"].rawString()
+                        let originalURL = json["originalURL"].rawString()
+                        let expirationDate = dateFormatter.date(from: json["expirationDate"].rawString()!)
+                        let password = json["password"].rawString() == "null" ? nil : json["password"].rawString()
+
+                        let link = Link(title: title!, creationDate: creationDate!, originalURL: originalURL!, shortURL: shortURL!, expirationDate: expirationDate!, password: password)
+                        completion(true, true, link)
+                    case .failure(let error):
+                        print(error)
+                        self.controller?.showAlert(withTitle: "Fetch Failed", message: error.localizedDescription, option1: "OK", option2: nil)
+                        completion(true, false, nil)
+                    }
+            }
         }
     }
 
     // MARK: - Fetch Analytics Data
-    func fetchLinkAnalytics(completion: @escaping (Bool, Bool, [LinkAnalytics]?) -> Void) {
-        // TODO: Refresh link analytics from API
-        analyticsData = generateAllAnalytics(for: links)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            completion(true, true, self.analyticsData)
+    func fetchLinkAnalytics(pageNo: Int, completion: @escaping (Bool, Bool, [LinkAnalytics]?) -> Void) {
+        let currentUser = Auth.auth().currentUser
+        currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
+            if let error = error {
+                print("Cannot get token: ", error )
+                return
+            }
+
+            let parameters: Parameters = [
+                "pageNo": pageNo
+            ]
+
+            let headers: HTTPHeaders = [
+                "Authorization": "Bearer \(idToken ?? "")"
+            ]
+
+            AF.request("http://35.222.149.45:8080/analytics/users/" + currentUser!.uid, method: .get, parameters: parameters, headers: headers)
+                .validate(statusCode: 200..<300)
+                .responseJSON { response in
+//                    debugPrint(response)
+                    switch response.result {
+                    case .success(let value):
+                        var fetchedAnalytics = [LinkAnalytics]()
+
+                        let analytics = JSON(value).arrayValue
+                        for analytic in analytics {
+                            let id = analytic["shortURL"].rawString()
+                            let perMonthClicks = analytic["perMonth"].dictionaryObject as? [String: Int64]
+
+                            let dailyAverage = 0.0
+                            let max = Int64(0)
+                            let min = Int64(0)
+                            let totalPerYear = Int64(0)
+                            let browserCounts = [String: Int64]()
+                            let osCounts =  [String: Int64]()
+
+                            let fetchedAnalytic = LinkAnalytics(id: id!, lastAccessDate: nil, dailyAverage: dailyAverage, max: max, min: min, totalPerYear: totalPerYear, perMonthClicks: perMonthClicks!, browserCounts: browserCounts, osCounts: osCounts)
+                            fetchedAnalytics.append(fetchedAnalytic)
+                        }
+
+                        completion(true, true, fetchedAnalytics)
+                    case .failure(let error):
+                        print(error)
+                        self.controller?.showAlert(withTitle: "Fetch Failed", message: error.localizedDescription, option1: "OK", option2: nil)
+                        completion(true, false, nil)
+                    }
+            }
         }
     }
 
     func fetchLinkAnalytic(for link: String, completion: @escaping (Bool, Bool, LinkAnalytics?) -> Void) {
-        // TODO: Refresh link analytic information from API
+        let currentUser = Auth.auth().currentUser
+        currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
+            if let error = error {
+                print("Cannot get token: ", error )
+                return
+            }
 
-        let analytics = analyticsData.first(where: { $0.id == link })
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            completion(true, true, analytics)
+            let headers: HTTPHeaders = [
+                "Authorization": "Bearer \(idToken ?? "")"
+            ]
+
+            AF.request("http://35.222.149.45:8080/analytics/" + link, method: .get, headers: headers)
+                .validate(statusCode: 200..<300)
+                .responseJSON { response in
+//                    debugPrint(response)
+                    switch response.result {
+                    case .success(let value):
+                        let dateFormatter = DateFormatter()
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+
+                        let json = JSON(value)
+                        let id = link
+                        let lastAccessDate = dateFormatter.date(from: json["lastAccessDate"].rawString()!)
+                        let dailyAverage = json["dailyAverage"].doubleValue
+                        let max = json["max"].int64Value
+                        let min = json["min"].int64Value
+                        let totalPerYear = json["totalPerYear"].int64Value
+                        let perMonthClicks =  json["perMonth"].dictionaryObject as? [String: Int64]
+                        let browserCounts = json["byBrowsers"].dictionaryObject as? [String: Int64]
+                        let osCounts = json["byOs"].dictionaryObject as? [String: Int64]
+
+                        let analytics = LinkAnalytics(id: id, lastAccessDate: lastAccessDate, dailyAverage: dailyAverage, max: max, min: min, totalPerYear: totalPerYear, perMonthClicks: perMonthClicks!, browserCounts: browserCounts!, osCounts: osCounts!)
+                        completion(true, true, analytics)
+                    case .failure(let error):
+                        print(error)
+                        self.controller?.showAlert(withTitle: "Fetch Failed", message: error.localizedDescription, option1: "OK", option2: nil)
+                        completion(true, false, nil)
+                    }
+            }
         }
     }
 }

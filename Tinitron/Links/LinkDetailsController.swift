@@ -100,6 +100,7 @@ class LinkDetailsController: UITableViewController {
             if finished && success {
                 self.link = fetchedLink
                 self.refreshUI()
+                self.tableView.scroll(to: .top, animated: true)
             }
 
             if finished {
@@ -144,7 +145,7 @@ class LinkDetailsController: UITableViewController {
 
     // MARK: - Button Actions
     @IBAction func shareLink(_ sender: Any) {
-        if let url = URL(string: "https://" + link!.shortURL) {
+        if let url = URL(string: "http://tinitron.ml/" + link!.shortURL) {
             let items: [Any] = [url]
             let activityController = UIActivityViewController(activityItems: items, applicationActivities: nil)
             activityController.popoverPresentationController?.barButtonItem = sender as? UIBarButtonItem
@@ -153,7 +154,7 @@ class LinkDetailsController: UITableViewController {
     }
 
     @IBAction func viewLink(_ sender: Any) {
-        if let url = URL(string: "https://" + link!.shortURL) {
+        if let url = URL(string: "http://tinitron.ml/" + link!.shortURL) {
             let config = SFSafariViewController.Configuration()
             config.entersReaderIfAvailable = true
 
@@ -165,7 +166,7 @@ class LinkDetailsController: UITableViewController {
 
     @IBAction func saveChanges(_ sender: LGButton) {
         sender.isLoading = true
-        viewModel?.updateLink(link: link!, completion: { (finished, success) in
+        viewModel?.updateLink(shortURL: key!, link: link!, completion: { (finished, success) in
             if finished && success {
                 if let index = self.viewModel?.links.firstIndex(where: {$0.shortURL == self.key}) {
                     self.viewModel?.links[index] = self.link!
@@ -209,7 +210,7 @@ extension LinkDetailsController {
             let storyboard = UIStoryboard(name: "Analytics", bundle: nil)
             let linkAnalyticsController = storyboard.instantiateViewController(identifier: "LinkAnalytics") as LinkAnalyticsController
             linkAnalyticsController.viewModel = viewModel
-            linkAnalyticsController.analyticsData = viewModel?.analyticsData.first(where: { $0.id == link?.shortURL })
+            linkAnalyticsController.analyticsData = LinkAnalytics(id: link!.shortURL, lastAccessDate: nil, dailyAverage: 0, max: 0, min: 0, totalPerYear: 0, perMonthClicks: [String: Int64](), browserCounts: [String: Int64](), osCounts: [String: Int64]())
             self.navigationController?.pushViewController(linkAnalyticsController, animated: true)
         } else {
             resignFirstResponder()

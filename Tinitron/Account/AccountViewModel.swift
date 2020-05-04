@@ -7,6 +7,7 @@
 //
 
 import Firebase
+import Alamofire
 import ReactiveSwift
 import ReactiveCocoa
 import FirebaseStorage
@@ -131,7 +132,8 @@ class ProfileViewModel: UserAccountViewModeling {
     }
 
     func changeUsername(name: String, completion: @escaping (Bool) -> Void) {
-        let changeRequest = Auth.auth().currentUser?.createProfileChangeRequest()
+        let user = Auth.auth().currentUser
+        let changeRequest = user?.createProfileChangeRequest()
         changeRequest?.displayName = name
         changeRequest?.commitChanges(completion: { (error) in
             if let error = error {
@@ -139,6 +141,15 @@ class ProfileViewModel: UserAccountViewModeling {
                 self.controller?.showAlert(withTitle: "Operation Failed", message: error.localizedDescription, option1: "OK", option2: nil)
                 completion(false)
             } else {
+                user?.getIDTokenForcingRefresh(true) { idToken, error in
+                    if let error = error {
+                        print("Cannot get token: ", error )
+                        return
+                    }
+
+                    self.updateUser(idToken: idToken, uid: user!.uid, username: user?.displayName, password: nil)
+                }
+
                 completion(true)
             }
         })
@@ -178,6 +189,15 @@ class ProfileViewModel: UserAccountViewModeling {
                                     completion(false)
                                     return
                                   } else {
+                                    user?.getIDTokenForcingRefresh(true) { idToken, error in
+                                        if let error = error {
+                                            print("Cannot get token: ", error )
+                                            return
+                                        }
+
+                                        self.updateUser(idToken: idToken, uid: user!.uid, username: user?.displayName, password: newPassword)
+                                    }
+
                                     completion(true)
                                     return
                                 }
@@ -212,6 +232,15 @@ class ProfileViewModel: UserAccountViewModeling {
                 completion(false)
             } else {
                 // User re-authenticated.
+                user?.getIDTokenForcingRefresh(true) { idToken, error in
+                    if let error = error {
+                        print("Cannot get token: ", error )
+                        return
+                    }
+
+                    self.deleteUser(idToken: idToken, uid: user!.uid)
+                }
+
                 user?.delete { error in
                     if let error = error {
                         // An error happened.
@@ -225,5 +254,48 @@ class ProfileViewModel: UserAccountViewModeling {
                 }
             }
         })
+    }
+
+    // MARK: - Microservice User Update/Delete
+    private func updateUser(idToken: String?, uid: String, username: String?, password: String?) {
+        let parameters: Parameters = [
+            "id": uid,
+            "username": username ?? NSNull(),
+            "password": password ?? NSNull()
+        ]
+
+        let headers: HTTPHeaders = [
+            "Authorization": "Bearer \(idToken ?? "")"
+        ]
+
+        AF.request("http://34.66.247.212:8080/users/" + uid, method: .put, parameters: parameters, headers: headers)
+            .validate(statusCode: 200..<300)
+            .responseJSON { response in
+                debugPrint(response)
+                switch response.result {
+                case .success:
+                    return
+                case .failure(let error):
+                    print(error)
+                }
+        }
+    }
+
+    private func deleteUser(idToken: String?, uid: String) {
+        let headers: HTTPHeaders = [
+            "Authorization": "Bearer \(idToken ?? "")"
+        ]
+
+        AF.request("http://34.66.247.212:8080/users/" + uid, method: .delete, headers: headers)
+            .validate(statusCode: 200..<300)
+            .responseJSON { response in
+                debugPrint(response)
+                switch response.result {
+                case .success:
+                    return
+                case .failure(let error):
+                    print(error)
+                }
+        }
     }
 }

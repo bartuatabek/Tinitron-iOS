@@ -10,21 +10,22 @@ import Foundation
 
 struct LinkAnalytics {
 
+    var title: String?
     var id: String
 
     // Highlights
-    var lastAccessDate: Date
-    var dailyAverage: Int
+    var lastAccessDate: Date?
+    var dailyAverage: Double
 
     // Range
-    var max: Int
-    var min: Int
+    var max: Int64
+    var min: Int64
 
     // Yearly Highlights
-    var totalPerYear: Int
+    var totalPerYear: Int64
 
     // Monthly Highlights
-    var perMonthClicks: [String: Int] = ["January": 0,
+    var perMonthClicks: [String: Int64] = ["January": 0,
                                         "February": 0,
                                         "March": 0,
                                         "April": 0,
@@ -38,7 +39,7 @@ struct LinkAnalytics {
                                         "December": 0]
 
     // Browser Highlights
-    var browserCounts: [String: Int] = ["ie": 0,
+    var browserCounts: [String: Int64] = ["ie": 0,
                                        "firefox": 0,
                                        "chrome": 0,
                                        "opera": 0,
@@ -46,14 +47,15 @@ struct LinkAnalytics {
                                        "others": 0]
 
     // OS Highlights
-    var osCounts: [String: Int] = ["windows": 0,
+    var osCounts: [String: Int64] = ["windows": 0,
                                   "macOs": 0,
                                   "linux": 0,
                                   "android": 0,
                                   "ios": 0,
                                   "others": 0]
 
-    init(id: String, lastAccessDate: Date, dailyAverage: Int, max: Int, min: Int, totalPerYear: Int, perMonthClicks: [String: Int], browserCounts: [String: Int], osCounts: [String: Int]) {
+    init(title: String? = nil, id: String, lastAccessDate: Date?, dailyAverage: Double, max: Int64, min: Int64, totalPerYear: Int64, perMonthClicks: [String: Int64], browserCounts: [String: Int64], osCounts: [String: Int64]) {
+        self.title = title
         self.id = id
         self.lastAccessDate = lastAccessDate
         self.dailyAverage = dailyAverage

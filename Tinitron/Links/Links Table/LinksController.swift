@@ -17,6 +17,8 @@ class LinksController: UITableViewController {
 
     var filter = false
     var selectedLink: Link?
+    private var currentPage = 0
+    private var showLoadingCell = false
 
     /// Data models for the table view.
     var viewModel: LinksViewModeling?
@@ -68,6 +70,7 @@ class LinksController: UITableViewController {
         let navigationController = splitViewController.masterViewController as! UINavigationController
         let analyticsContoller = navigationController.topViewController as! AnalyticsController
         analyticsContoller.viewModel = viewModel
+        refresh(refreshControl!)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -227,8 +230,9 @@ class LinksController: UITableViewController {
     @IBAction func refresh(_ sender: UIRefreshControl) {
         tableView.restore()
         view.showAnimatedSkeleton()
-        viewModel?.fetchLinks(completion: { (finished, success, fetchedLinks) in
+        viewModel?.fetchLinks(pageNo: 0, completion: { (finished, success, fetchedLinks) in
             if finished && success {
+                self.currentPage = 0
                 self.viewModel?.links = fetchedLinks!
                 self.sections.removeAll()
                 self.sections = self.getSectionsBasedOnDate(links: fetchedLinks!)
@@ -240,6 +244,27 @@ class LinksController: UITableViewController {
                 sender.endRefreshing()
                 self.tableView.reloadData()
                 self.view.hideSkeleton(transition: .crossDissolve(0.25))
+            }
+        })
+    }
+
+    private func fetchNextPage() {
+        showLoadingCell = true
+        sections.insert([Link](), at: sections.count-1)
+
+        currentPage += 1
+        viewModel?.fetchLinks(pageNo: currentPage, completion: { (finished, success, fetchedLinks) in
+            if finished && success {
+                self.viewModel?.links += fetchedLinks!
+                self.sections.removeAll()
+                self.sections = self.getSectionsBasedOnDate(links: fetchedLinks!)
+                self.sections.insert([Link](), at: 0)
+                self.restorePinnedItems()
+                self.showLoadingCell = false
+            }
+
+            if finished {
+                self.tableView.reloadData()
             }
         })
     }
@@ -328,7 +353,7 @@ extension LinksController {
 
         let copyLink = UIContextualAction(style: .normal, title: "Copy Link") { (_, _, completionHandler) in
             print("index path of edit: \(indexPath)")
-            UIPasteboard.general.string = self.sections[indexPath.section][indexPath.row].shortURL
+            UIPasteboard.general.string = "tinitron.ml/" + self.sections[indexPath.section][indexPath.row].shortURL
             completionHandler(true)
         }
         copyLink.backgroundColor = .darkGray
@@ -453,10 +478,15 @@ extension LinksController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if showLoadingCell && indexPath.section == self.sections.count-1 && indexPath.row == self.sections[self.sections.count-1].count-1 {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "LoadingCell", for: indexPath)
+            return cell
+        }
+
         let cell = tableView.dequeueReusableCell(withIdentifier: "LinkCell", for: indexPath)
 
         cell.textLabel?.text = sections[indexPath.section][indexPath.row].title
-        cell.detailTextLabel?.text = sections[indexPath.section][indexPath.row].shortURL
+        cell.detailTextLabel?.text = "tinitron.ml/" + sections[indexPath.section][indexPath.row].shortURL
 
         if sections[indexPath.section][indexPath.row].expirationDate < Date() {
             cell.detailTextLabel?.textColor = .systemPink
@@ -464,6 +494,12 @@ extension LinksController {
         } else {
             cell.detailTextLabel?.textColor = .link
             cell.imageView?.tintColor = .systemBlue
+        }
+
+        if sections[indexPath.section][indexPath.row].password != nil {
+            cell.imageView?.image = UIImage(systemName: "lock.circle")
+        } else {
+             cell.imageView?.image = UIImage(systemName: "link")
         }
 
         return cell
@@ -477,7 +513,12 @@ extension LinksController {
             cell.transform = .identity
             cell.alpha = 1
 
-        }, completion: nil)
+        }, completion: { (_) in
+            if indexPath.section == self.sections.count-1 && indexPath.row == self.sections[self.sections.count-1].count-1 {
+                self.fetchNextPage()
+            }
+        })
+
     }
 }
 

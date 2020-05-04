@@ -81,39 +81,39 @@ func generateAllAnalytics(for links: [Link]) -> [LinkAnalytics] {
 
 func generateRandomLinkAnalytics(id: String) -> LinkAnalytics {
     let lastAccessDate = Date.randomWithinDaysBeforeToday(30)
-    let dailyAverage = Int.random(in: 0...110)
-    let max = Int.random(in: 0...1000)
-    let minimum = Int.random(in: 0...100)
+    let dailyAverage = Double.random(in: 0...110)
+    let max = Int64.random(in: 0...1000)
+    let minimum = Int64.random(in: 0...100)
 
-    let perMonthClicks: [String: Int] = ["January": Int.random(in: 0...100),
-                                         "February": Int.random(in: 0...100),
-                                         "March": Int.random(in: 0...100),
-                                         "April": Int.random(in: 0...100),
-                                         "May": Int.random(in: 0...100),
-                                         "June": Int.random(in: 0...100),
-                                         "July": Int.random(in: 0...100),
-                                         "August": Int.random(in: 0...100),
-                                         "September": Int.random(in: 0...100),
-                                         "October": Int.random(in: 0...100),
-                                         "November": Int.random(in: 0...100),
-                                         "December": Int.random(in: 0...100)]
-    let totalPerYear = perMonthClicks.compactMap { Int($1) }.reduce(0, +)
+    let perMonthClicks: [String: Int64] = ["January": Int64.random(in: 0...100),
+                                         "February": Int64.random(in: 0...100),
+                                         "March": Int64.random(in: 0...100),
+                                         "April": Int64.random(in: 0...100),
+                                         "May": Int64.random(in: 0...100),
+                                         "June": Int64.random(in: 0...100),
+                                         "July": Int64.random(in: 0...100),
+                                         "August": Int64.random(in: 0...100),
+                                         "September": Int64.random(in: 0...100),
+                                         "October": Int64.random(in: 0...100),
+                                         "November": Int64.random(in: 0...100),
+                                         "December": Int64.random(in: 0...100)]
+    let totalPerYear = perMonthClicks.compactMap { Int64($1) }.reduce(0, +)
 
-    let browserCounts: [String: Int] = ["ie": Int.random(in: 0...100),
-                                        "firefox": Int.random(in: 0...100),
-                                        "chrome": Int.random(in: 0...100),
-                                        "opera": Int.random(in: 0...100),
-                                        "safari": Int.random(in: 0...100),
-                                        "others": Int.random(in: 0...100)]
+    let browserCounts: [String: Int64] = ["ie": Int64.random(in: 0...100),
+                                        "firefox": Int64.random(in: 0...100),
+                                        "chrome": Int64.random(in: 0...100),
+                                        "opera": Int64.random(in: 0...100),
+                                        "safari": Int64.random(in: 0...100),
+                                        "others": Int64.random(in: 0...100)]
 
-    let osCounts: [String: Int] = ["windows": Int.random(in: 0...100),
-                                   "macOs": Int.random(in: 0...100),
-                                   "linux": Int.random(in: 0...100),
-                                   "android": Int.random(in: 0...100),
-                                   "ios": Int.random(in: 0...100),
-                                   "others": Int.random(in: 0...100)]
+    let osCounts: [String: Int64] = ["windows": Int64.random(in: 0...100),
+                                   "macOs": Int64.random(in: 0...100),
+                                   "linux": Int64.random(in: 0...100),
+                                   "android": Int64.random(in: 0...100),
+                                   "ios": Int64.random(in: 0...100),
+                                   "others": Int64.random(in: 0...100)]
 
-    return LinkAnalytics(id: id, lastAccessDate: lastAccessDate, dailyAverage: dailyAverage, max: max, min: minimum, totalPerYear: totalPerYear, perMonthClicks: perMonthClicks, browserCounts: browserCounts, osCounts: osCounts)
+    return LinkAnalytics(id: id, lastAccessDate: lastAccessDate, dailyAverage: dailyAverage, max: Int64(max), min: Int64(minimum), totalPerYear: totalPerYear, perMonthClicks: perMonthClicks, browserCounts: browserCounts, osCounts: osCounts)
 }
 
 func randomString(length: Int) -> String {

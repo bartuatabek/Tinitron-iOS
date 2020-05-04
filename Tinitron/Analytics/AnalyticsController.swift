@@ -36,7 +36,7 @@ class AnalyticsController: UITableViewController {
         if viewModel != nil {
             self.viewModel?.controller = self
             selectedLink = nil
-            refresh(tableView!.refreshControl!)
+            refresh(refreshControl!)
         }
     }
 
@@ -71,7 +71,7 @@ class AnalyticsController: UITableViewController {
                 let id = $0.shortURL
 
                 if let linkAnalytic = viewModel!.analyticsData.first(where: { $0.id == id }) {
-                    return linkAnalytic.dailyAverage >= 100
+                    return linkAnalytic.perMonthClicks[Date().month]! >= Int64(10)
                 }
                 return false
             })
@@ -86,7 +86,7 @@ class AnalyticsController: UITableViewController {
         view.showAnimatedSkeleton()
         chartView.data = nil
 
-        viewModel?.fetchLinkAnalytics(completion: { (finished, success, fetchedAnalytics) in
+        viewModel?.fetchLinkAnalytics(pageNo: 0, completion: { (finished, success, fetchedAnalytics) in
             if finished && success {
                 self.sections = self.getSectionsBasedOnDate(links: self.viewModel!.links)
                 self.viewModel?.analyticsData = fetchedAnalytics!
@@ -151,7 +151,7 @@ extension AnalyticsController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "LinkAnalyticsCell", for: indexPath)
 
         cell.textLabel?.text = sections[indexPath.section][indexPath.row].title
-        cell.detailTextLabel?.text = sections[indexPath.section][indexPath.row].shortURL
+        cell.detailTextLabel?.text = "tinitron.ml/" + sections[indexPath.section][indexPath.row].shortURL
 
         if sections[indexPath.section][indexPath.row].isExpired {
             cell.detailTextLabel?.textColor = .systemPink
@@ -161,7 +161,7 @@ extension AnalyticsController {
             cell.detailTextLabel?.textColor = .link
             let linkAnalytic = viewModel!.analyticsData.first(where: { $0.id == sections[indexPath.section][indexPath.row].shortURL })
 
-            if linkAnalytic!.dailyAverage > 5 {
+            if linkAnalytic!.perMonthClicks[Date().month]! > Int64(5) {
                 cell.imageView?.image = UIImage(systemName: "chevron.up.circle")
                 cell.imageView?.tintColor = .systemBlue
             } else {

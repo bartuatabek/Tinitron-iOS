@@ -40,11 +40,7 @@ class LinkAnalyticsController: UITableViewController {
         dateFormatter.dateFormat = "MM/dd/yyyy"
         numberFormatter.numberStyle = .decimal
 
-        setupTableInformation()
-        setupMonthlyClicksChartView()
-
-        setupBrowserChartView()
-        setupOSChartView()
+        refresh(refreshControl!)
     }
 
     // MARK: Refresh Control
@@ -72,14 +68,19 @@ class LinkAnalyticsController: UITableViewController {
     }
 
     fileprivate func setupTableInformation() {
-        lastAccessDateLabel.text = dateFormatter.string(from: analyticsData!.lastAccessDate)
+        if let lastAccessDate = analyticsData!.lastAccessDate {
+            lastAccessDateLabel.text = dateFormatter.string(from: lastAccessDate)
+        } else {
+            lastAccessDateLabel.text = ""
+        }
+
         dailyAverageLabel.text = numberFormatter.string(from: NSNumber(value: analyticsData!.dailyAverage))
 
         maxClicksLabel.text = numberFormatter.string(from: NSNumber(value: analyticsData!.max))
         minClicksLabel.text = numberFormatter.string(from: NSNumber(value: analyticsData!.min))
 
-        maxClicksChart.widthAnchor.constraint(equalToConstant: analyticsData!.max > 300 ? CGFloat(analyticsData!.max/2) : CGFloat(analyticsData!.max)).isActive = true
-        minClicksChart.widthAnchor.constraint(equalToConstant: analyticsData!.min > 300 ? CGFloat(analyticsData!.min/2) : CGFloat(analyticsData!.max)).isActive = true
+        maxClicksChart.widthAnchor.constraint(equalToConstant: analyticsData!.max > 300 ? CGFloat(analyticsData!.max/2) : CGFloat(150)).isActive = true
+        minClicksChart.widthAnchor.constraint(equalToConstant: analyticsData!.min > 300 ? CGFloat(analyticsData!.min/2) : CGFloat(100)).isActive = true
 
         totalPerYearLabel.text = "The total number of clicks per year for this link is \(numberFormatter.string(from: NSNumber(value: analyticsData!.totalPerYear)) ?? "null")."
     }
@@ -109,7 +110,7 @@ extension LinkAnalyticsController: ChartViewDelegate {
         chartView.chartDescription?.enabled = false
 
         chartView.drawCenterTextEnabled = true
-        chartView.holeColor = .systemBackground
+        chartView.holeColor = .secondarySystemGroupedBackground
 
         chartView.drawHoleEnabled = true
         chartView.rotationAngle = 0
@@ -183,6 +184,7 @@ extension LinkAnalyticsController: ChartViewDelegate {
             data.barWidth = 0.9
             monthlyClicksChartView.data = data
         }
+
     }
 
     func setupBrowserChartView() {
@@ -229,7 +231,8 @@ extension LinkAnalyticsController: ChartViewDelegate {
         paragraphStyle.lineBreakMode = .byTruncatingTail
         paragraphStyle.alignment = .center
 
-        let centerText = NSMutableAttributedString(string: "Browser \nTypes", attributes: [NSAttributedString.Key.paragraphStyle: paragraphStyle])
+        let centerText = NSMutableAttributedString(string: "Browser \nTypes", attributes: [NSAttributedString.Key.paragraphStyle: paragraphStyle,
+                                                                                           NSAttributedString.Key.foregroundColor: UIColor.label])
         browsersChartView.centerAttributedText = centerText
     }
 
@@ -277,7 +280,7 @@ extension LinkAnalyticsController: ChartViewDelegate {
         paragraphStyle.lineBreakMode = .byTruncatingTail
         paragraphStyle.alignment = .center
 
-        let centerText = NSMutableAttributedString(string: "Operating System \nTypes", attributes: [NSAttributedString.Key.paragraphStyle: paragraphStyle])
+        let centerText = NSMutableAttributedString(string: "Operating System \nTypes", attributes: [NSAttributedString.Key.paragraphStyle: paragraphStyle, NSAttributedString.Key.foregroundColor: UIColor.label])
         osChartView.centerAttributedText = centerText
     }
 }

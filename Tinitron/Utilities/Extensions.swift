@@ -255,6 +255,12 @@ extension Date {
         let randomInterval = TimeInterval(arc4random_uniform(UInt32(interval)))
         return initial.addingTimeInterval(randomInterval)
     }
+
+    var month: String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM"
+        return dateFormatter.string(from: self)
+    }
 }
 
 // MARK: - String Extensions
@@ -293,6 +299,7 @@ extension UISplitViewController {
 }
 
 // MARK: - UITableView Extensions
+// swiftlint:disable identifier_name, type_name
 extension UITableView {
     func setEmptyMessage(_ message: String) {
         let messageLabel = UILabel(frame: CGRect(x: 0, y: 0, width: self.bounds.size.width, height: self.bounds.size.height))
@@ -307,5 +314,37 @@ extension UITableView {
 
     func restore() {
         self.backgroundView = nil
+    }
+
+    func reloadData(_ completion: @escaping () -> Void) {
+        UIView.animate(withDuration: 0, animations: {
+            self.reloadData()
+        }, completion: { _ in
+            completion()
+        })
+    }
+
+    // swiftlint:disable identifier_name
+    func scroll(to: scrollsTo, animated: Bool) {
+        DispatchQueue.main.asyncAfter(deadline: .now()) {
+            let numberOfSections = self.numberOfSections
+            let numberOfRows = self.numberOfRows(inSection: numberOfSections-1)
+            switch to {
+            case .top:
+                if numberOfRows > 0 {
+                     let indexPath = IndexPath(row: 0, section: 0)
+                     self.scrollToRow(at: indexPath, at: .top, animated: animated)
+                }
+            case .bottom:
+                if numberOfRows > 0 {
+                    let indexPath = IndexPath(row: numberOfRows-1, section: (numberOfSections-1))
+                    self.scrollToRow(at: indexPath, at: .bottom, animated: animated)
+                }
+            }
+        }
+    }
+
+    enum scrollsTo {
+        case top, bottom
     }
 }

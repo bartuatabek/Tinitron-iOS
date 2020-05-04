@@ -78,6 +78,16 @@ class AuthViewModel: AuthViewModeling {
         let homeController = storyboard.instantiateViewController(identifier: "HomeTabBarController") as UITabBarController
          homeController.modalPresentationStyle = .fullScreen
         self.controller?.present(homeController, animated: true, completion: nil)
+
+        let currentUser = Auth.auth().currentUser
+        currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
+            if let error = error {
+                print("Cannot get token: ", error )
+                return
+            }
+
+            print(idToken ?? "")
+        }
     }
 
     func resetErrorMessages() {
@@ -126,6 +136,16 @@ class AuthViewModel: AuthViewModeling {
                 return
             }
             // User is signed in to Firebase with Apple.
+
+            let currentUser = Auth.auth().currentUser
+            currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
+                if let error = error {
+                    print("Cannot get token: ", error )
+                    return
+                }
+
+                self.createUser(idToken: idToken, uid: currentUser!.uid, username: currentUser?.displayName, email: (currentUser?.email)!, password: "tinitronic")
+            }
             completion(true, true)
         }
     }
@@ -226,6 +246,16 @@ class AuthViewModel: AuthViewModeling {
             } else {
                 print("Register Successful")
 
+                let currentUser = Auth.auth().currentUser
+                currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
+                    if let error = error {
+                        print("Cannot get token: ", error )
+                        return
+                    }
+
+                    self.createUser(idToken: idToken, uid: currentUser!.uid, username: currentUser?.displayName, email: email, password: password)
+                }
+
                 if let user = authResult?.user {
                     print("uid: " + user.uid)
                     print("email: " + (user.email ?? ""))
@@ -308,5 +338,31 @@ class AuthViewModel: AuthViewModeling {
       }.joined()
 
       return hashString
+    }
+
+    // MARK: - Microservice User Creation
+    private func createUser(idToken: String?, uid: String, username: String?, email: String, password: String) {
+        let parameters: Parameters = [
+            "id": uid,
+            "username": username ?? NSNull(),
+            "email": email,
+            "password": password
+        ]
+
+        let headers: HTTPHeaders = [
+            "Authorization": "Bearer \(idToken ?? "")"
+        ]
+
+        AF.request("http://34.66.247.212:8080/users/create", method: .post, parameters: parameters, headers: headers)
+            .validate(statusCode: 200..<300)
+            .responseJSON { response in
+                debugPrint(response)
+                switch response.result {
+                case .success:
+                    return
+                case .failure(let error):
+                    print(error)
+                }
+        }
     }
 }

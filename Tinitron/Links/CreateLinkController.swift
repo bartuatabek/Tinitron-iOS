@@ -125,7 +125,14 @@ class CreateLinkController: UITableViewController {
         viewModel?.createNewLink(for: newLink, completion: { (finished, success, newLink) in
             if finished && success {
                 self.viewModel?.links.append(newLink!)
-                self.navigationController!.popToRootViewController(animated: true)
+
+                let homeController = self.presentingViewController as? UITabBarController
+                let splitViewController = homeController?.selectedViewController as? UISplitViewController
+                let navigationController = splitViewController?.masterViewController as? UINavigationController
+                let linksContoller = navigationController?.topViewController as? LinksController
+                linksContoller!.refresh(linksContoller!.refreshControl!)
+
+                self.dismiss(animated: true, completion: nil)
             } else if finished && !success {
                 self.navigationItem.setRightBarButton(UIBarButtonItem(title: "Save", style: .done, target: self, action: #selector(self.saveLink(_:))), animated: true)
             }
