@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct Link {
+struct Link: Equatable {
 
     // URL Information
     var title: String
@@ -37,5 +37,9 @@ struct Link {
 
     var isExpired: Bool {
         return daysUntilExpiration <= 0
+    }
+
+    static func == (lhs: Link, rhs: Link) -> Bool {
+        return lhs.shortURL == rhs.shortURL
     }
 }

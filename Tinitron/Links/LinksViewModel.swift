@@ -22,10 +22,10 @@ protocol LinksViewModeling {
     func deleteLinks(links: [String], completion: @escaping (Bool, Bool) -> Void)
     func expireLinks(links: [String], completion: @escaping (Bool, Bool) -> Void)
 
-    func fetchLinks(pageNo: Int, completion: @escaping (Bool, Bool, [Link]?) -> Void)
+    func fetchLinks(pageNo: Int, completion: @escaping (Bool, Bool, Int, Int, [Link]?) -> Void)
     func fetchLink(shortURL: String, completion: @escaping (Bool, Bool, Link?) -> Void)
 
-    func fetchLinkAnalytics(pageNo: Int, completion: @escaping (Bool, Bool, [LinkAnalytics]?) -> Void)
+    func fetchLinkAnalytics(pageNo: Int, completion: @escaping (Bool, Bool, Int, Int, [LinkAnalytics]?) -> Void)
     func fetchLinkAnalytic(for link: String, completion: @escaping (Bool, Bool, LinkAnalytics?) -> Void)
 }
 
@@ -207,7 +207,7 @@ class LinksViewModel: LinksViewModeling {
     }
 
     // MARK: - Fetch Link Data
-    func fetchLinks(pageNo: Int, completion: @escaping (Bool, Bool, [Link]?) -> Void) {
+    func fetchLinks(pageNo: Int, completion: @escaping (Bool, Bool, Int, Int, [Link]?) -> Void) {
         let currentUser = Auth.auth().currentUser
         currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
             if let error = error {
@@ -233,7 +233,11 @@ class LinksViewModel: LinksViewModeling {
                         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
                         var fetchedLinks = [Link]()
 
-                        let links = JSON(value).arrayValue
+                        let json = JSON(value)
+                        let pageNumber = json["pageNumber"].intValue
+                        let totalPages = json["totalPages"].intValue
+
+                        let links = json["linkDTOList"].arrayValue
                         for link in links {
                             let title = link["title"].rawString() == "null" ? link["originalURL"].rawString() : link["title"].rawString()
                             let creationDate = dateFormatter.date(from: link["creationDate"].rawString()!)
@@ -245,11 +249,11 @@ class LinksViewModel: LinksViewModeling {
                             fetchedLinks.append(fetchedLink)
                         }
 
-                        completion(true, true, fetchedLinks)
+                        completion(true, true, pageNumber, totalPages, fetchedLinks)
                     case .failure(let error):
                         print(error)
                         self.controller?.showAlert(withTitle: "Fetch Failed", message: error.localizedDescription, option1: "OK", option2: nil)
-                        completion(true, false, nil)
+                        completion(true, false, 0, 0, nil)
                     }
             }
         }
@@ -296,7 +300,7 @@ class LinksViewModel: LinksViewModeling {
     }
 
     // MARK: - Fetch Analytics Data
-    func fetchLinkAnalytics(pageNo: Int, completion: @escaping (Bool, Bool, [LinkAnalytics]?) -> Void) {
+    func fetchLinkAnalytics(pageNo: Int, completion: @escaping (Bool, Bool, Int, Int, [LinkAnalytics]?) -> Void) {
         let currentUser = Auth.auth().currentUser
         currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
             if let error = error {
@@ -320,7 +324,11 @@ class LinksViewModel: LinksViewModeling {
                     case .success(let value):
                         var fetchedAnalytics = [LinkAnalytics]()
 
-                        let analytics = JSON(value).arrayValue
+                        let json = JSON(value)
+                        let pageNumber = json["pageNumber"].intValue
+                        let totalPages = json["totalPages"].intValue
+
+                        let analytics = json["analyticsDTOList"].arrayValue
                         for analytic in analytics {
                             let id = analytic["shortURL"].rawString()
                             let perMonthClicks = analytic["perMonth"].dictionaryObject as? [String: Int64]
@@ -336,11 +344,11 @@ class LinksViewModel: LinksViewModeling {
                             fetchedAnalytics.append(fetchedAnalytic)
                         }
 
-                        completion(true, true, fetchedAnalytics)
+                        completion(true, true, pageNumber, totalPages, fetchedAnalytics)
                     case .failure(let error):
                         print(error)
                         self.controller?.showAlert(withTitle: "Fetch Failed", message: error.localizedDescription, option1: "OK", option2: nil)
-                        completion(true, false, nil)
+                        completion(true, false, 0, 0, nil)
                     }
             }
         }

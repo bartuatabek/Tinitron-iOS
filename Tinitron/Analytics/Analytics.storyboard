@@ -204,7 +204,7 @@
                                                     <rect key="frame" x="15" y="40" width="313" height="20"/>
                                                     <subviews>
                                                         <view multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="5ad-Hy-P9W" customClass="RoundedView" customModule="Tinitron" customModuleProvider="target">
-                                                            <rect key="frame" x="0.0" y="0.0" width="250" height="20"/>
+                                                            <rect key="frame" x="0.0" y="0.0" width="35" height="20"/>
                                                             <subviews>
                                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Max" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="TuF-iI-urX">
                                                                     <rect key="frame" x="8.0000000000000018" y="3.3333333333333366" width="21.666666666666671" height="13.333333333333336"/>
@@ -215,7 +215,8 @@
                                                             </subviews>
                                                             <color key="backgroundColor" red="1" green="0.45882352941176469" blue="0.094117647058823528" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                             <constraints>
-                                                                <constraint firstAttribute="width" constant="250" id="cDP-yh-0wf"/>
+                                                                <constraint firstAttribute="width" constant="35" id="cDP-yh-0wf"/>
+                                                                <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="35" id="cg7-KP-Pvm"/>
                                                                 <constraint firstItem="TuF-iI-urX" firstAttribute="centerY" secondItem="5ad-Hy-P9W" secondAttribute="centerY" id="kL8-gI-bkR"/>
                                                                 <constraint firstItem="TuF-iI-urX" firstAttribute="leading" secondItem="5ad-Hy-P9W" secondAttribute="leadingMargin" id="mpZ-A6-TKw"/>
                                                                 <constraint firstAttribute="width" relation="lessThanOrEqual" constant="300" id="use-XE-KFP"/>
@@ -266,7 +267,7 @@
                                                     <rect key="frame" x="15" y="99" width="313" height="20"/>
                                                     <subviews>
                                                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="oRe-Vk-ue2" customClass="RoundedView" customModule="Tinitron" customModuleProvider="target">
-                                                            <rect key="frame" x="0.0" y="0.0" width="50" height="20"/>
+                                                            <rect key="frame" x="0.0" y="0.0" width="35" height="20"/>
                                                             <subviews>
                                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Min" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="67r-VL-xb4">
                                                                     <rect key="frame" x="8" y="3.3333333333333295" width="19" height="13.333333333333336"/>
@@ -281,7 +282,7 @@
                                                                 <constraint firstItem="67r-VL-xb4" firstAttribute="centerY" secondItem="oRe-Vk-ue2" secondAttribute="centerY" id="P9W-im-7ip"/>
                                                                 <constraint firstAttribute="height" constant="20" id="Rei-0j-shV"/>
                                                                 <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="35" id="eHp-hI-Rjg"/>
-                                                                <constraint firstAttribute="width" constant="50" id="kbR-rM-Jay"/>
+                                                                <constraint firstAttribute="width" constant="35" id="kbR-rM-Jay"/>
                                                                 <constraint firstAttribute="width" relation="lessThanOrEqual" constant="300" id="xth-7V-sLJ"/>
                                                             </constraints>
                                                             <userDefinedRuntimeAttributes>
@@ -677,6 +678,27 @@
                                         </imageView>
                                     </subviews>
                                 </tableViewCellContentView>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="boolean" keyPath="isSkeletonable" value="YES"/>
+                                </userDefinedRuntimeAttributes>
+                            </tableViewCell>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="LoadingCell" id="dBR-7u-93V">
+                                <rect key="frame" x="16" y="461" width="343" height="43.666667938232422"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="dBR-7u-93V" id="zce-1P-xFg">
+                                    <rect key="frame" x="0.0" y="0.0" width="343" height="43.666667938232422"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" animating="YES" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="DTZ-SF-6mw">
+                                            <rect key="frame" x="161.66666666666666" y="12" width="20" height="20"/>
+                                        </activityIndicatorView>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="DTZ-SF-6mw" firstAttribute="centerX" secondItem="zce-1P-xFg" secondAttribute="centerX" id="iiu-D8-pEE"/>
+                                        <constraint firstItem="DTZ-SF-6mw" firstAttribute="centerY" secondItem="zce-1P-xFg" secondAttribute="centerY" id="jzM-iD-8tU"/>
+                                    </constraints>
+                                </tableViewCellContentView>
+                                <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
                                 <userDefinedRuntimeAttributes>
                                     <userDefinedRuntimeAttribute type="boolean" keyPath="isSkeletonable" value="YES"/>
                                 </userDefinedRuntimeAttributes>

@@ -21,9 +21,12 @@ class AnalyticsController: UITableViewController {
     var viewModel: LinksViewModeling?
 
     let months = ["Jan", "Feb", "Mar",
-    "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep",
-    "Oct", "Nov", "Dec"]
+                  "Apr", "May", "Jun",
+                  "Jul", "Aug", "Sep",
+                  "Oct", "Nov", "Dec"]
+
+    private var currentPage = 0
+    private var shouldShowLoadingCell = false
 
     @IBOutlet var chartView: CombinedChartView!
 
@@ -36,7 +39,9 @@ class AnalyticsController: UITableViewController {
         if viewModel != nil {
             self.viewModel?.controller = self
             selectedLink = nil
-            refresh(refreshControl!)
+            if (viewModel?.analyticsData.isEmpty)! {
+                refresh(refreshControl!)
+            }
         }
     }
 
@@ -80,25 +85,67 @@ class AnalyticsController: UITableViewController {
         sections.insert(trendingLinks, at: 0)
     }
 
+    fileprivate func filterExtras() {
+        for index in 0..<sections.count {
+            sections[index] = sections[index].filter({ element in return (viewModel?.analyticsData.contains { $0.id == element.shortURL } ?? false) })
+        }
+
+        sections = sections.filter({ !$0.isEmpty })
+    }
+
     // MARK: Refresh Control
     @IBAction func refresh(_ sender: UIRefreshControl) {
         tableView.restore()
         view.showAnimatedSkeleton()
         chartView.data = nil
 
-        viewModel?.fetchLinkAnalytics(pageNo: 0, completion: { (finished, success, fetchedAnalytics) in
+        viewModel?.fetchLinkAnalytics(pageNo: 0, completion: { (finished, success, pageNumber, totalPages, fetchedAnalytics) in
             if finished && success {
                 self.sections = self.getSectionsBasedOnDate(links: self.viewModel!.links)
                 self.viewModel?.analyticsData = fetchedAnalytics!
+                self.filterExtras()
                 self.findTrendingLinks()
                 self.setupChartView()
+                self.currentPage = 0
+                self.shouldShowLoadingCell = pageNumber < totalPages - 1
+
+                if self.shouldShowLoadingCell {
+                    self.sections.insert([Link](generateRandomLinks(count: 1)), at: self.sections.endIndex)
+                }
             }
 
             if finished {
                 sender.endRefreshing()
                 self.setupChartView()
-                self.tableView.reloadData()
                 self.view.hideSkeleton(transition: .crossDissolve(0.25))
+                self.tableView.scrollRectToVisible(CGRect(origin: CGPoint(x: 0, y: 0), size: UIScreen.main.bounds.size), animated: true)
+                self.tableView.reloadData()
+            }
+        })
+    }
+
+    fileprivate func loadLinks() {
+        viewModel?.fetchLinkAnalytics(pageNo: currentPage, completion: { (finished, success, pageNumber, totalPages, fetchedAnalytics) in
+            if finished && success {
+                for analytics in fetchedAnalytics! {
+                    if !(self.viewModel?.analyticsData.contains(analytics))! {
+                        self.viewModel?.analyticsData.append(analytics)
+                    }
+                }
+
+                self.sections.removeAll()
+                self.sections = self.getSectionsBasedOnDate(links: self.viewModel!.links)
+                self.filterExtras()
+                self.findTrendingLinks()
+                self.shouldShowLoadingCell = pageNumber < totalPages - 1
+
+                if self.shouldShowLoadingCell {
+                    self.sections.insert([Link](generateRandomLinks(count: 1)), at: self.sections.endIndex)
+                }
+            }
+
+            if finished {
+                self.tableView.reloadData()
             }
         })
     }
@@ -111,6 +158,8 @@ extension AnalyticsController {
             if self.tableView(tableView, numberOfRowsInSection: section) > 0 {
                 return "Trending Links"
             } else { return nil }
+        } else if shouldShowLoadingCell && section == sections.count-1 {
+            return nil
         }
 
         if let item = sections[section].first, self.tableView(tableView, numberOfRowsInSection: section) > 0 {
@@ -148,6 +197,11 @@ extension AnalyticsController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if shouldShowLoadingCell && indexPath.section == sections.count-1 && indexPath.row == sections[indexPath.section].count-1 {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "LoadingCell", for: indexPath)
+            return cell
+        }
+
         let cell = tableView.dequeueReusableCell(withIdentifier: "LinkAnalyticsCell", for: indexPath)
 
         cell.textLabel?.text = sections[indexPath.section][indexPath.row].title
@@ -182,6 +236,11 @@ extension AnalyticsController {
             cell.alpha = 1
 
         }, completion: nil)
+
+        if self.shouldShowLoadingCell && indexPath.section == self.sections.count-1 && indexPath.row == self.sections[indexPath.section].count-1 {
+            self.currentPage += 1
+            self.loadLinks()
+        }
     }
 }
 
@@ -304,7 +363,7 @@ extension AnalyticsController: ChartViewDelegate {
         }
 
         let set1 = BarChartDataSet(entries: entries1, label: "Bar 1")
-        set1.setColor(.systemGreen)
+        set1.setColor(.systemBlue)
         set1.axisDependency = .right
         set1.drawValuesEnabled = false
 
@@ -334,6 +393,7 @@ extension AnalyticsController: IAxisValueFormatter {
     }
 }
 
+// MARK: - SkeletonTableViewDataSource
 extension AnalyticsController: SkeletonTableViewDataSource {
     func numSections(in collectionSkeletonView: UITableView) -> Int {
         return 10

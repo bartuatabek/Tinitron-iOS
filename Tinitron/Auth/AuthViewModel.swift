@@ -11,7 +11,6 @@ import Alamofire
 import CryptoKit
 import MessageUI
 import Foundation
-import SwiftyJSON
 import ReactiveSwift
 import ReactiveCocoa
 import AuthenticationServices

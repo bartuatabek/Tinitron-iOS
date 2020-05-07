@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct LinkAnalytics {
+struct LinkAnalytics: Equatable {
 
     var title: String?
     var id: String
@@ -65,5 +65,9 @@ struct LinkAnalytics {
         self.perMonthClicks = perMonthClicks
         self.browserCounts = browserCounts
         self.osCounts = osCounts
+    }
+
+    static func == (lhs: LinkAnalytics, rhs: LinkAnalytics) -> Bool {
+        return lhs.id == rhs.id
     }
 }

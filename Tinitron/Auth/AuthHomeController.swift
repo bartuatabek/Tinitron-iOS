@@ -14,6 +14,7 @@ class AuthHomeController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.navigationController?.overrideUserInterfaceStyle = .dark
         self.viewModel = AuthViewModel()
         self.viewModel?.controller = self
     }

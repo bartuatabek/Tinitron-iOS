@@ -14,12 +14,10 @@ target 'Tinitron' do
   pod 'Alamofire'
   pod 'SwiftLint'
   pod 'SwiftyJSON'
-  pod 'Kingfisher'
   pod 'LayoutHelper'
   pod 'SkeletonView'
   pod 'ReactiveCocoa'
   pod 'Firebase/Auth'
-  pod 'Firebase/Storage'
   pod 'Firebase/Analytics'
   pod 'IQKeyboardManagerSwift'
 end

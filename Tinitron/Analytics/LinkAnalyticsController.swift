@@ -40,6 +40,7 @@ class LinkAnalyticsController: UITableViewController {
         dateFormatter.dateFormat = "MM/dd/yyyy"
         numberFormatter.numberStyle = .decimal
 
+        tableView.scroll(to: .top, animated: true)
         refresh(refreshControl!)
     }
 
@@ -57,12 +58,12 @@ class LinkAnalyticsController: UITableViewController {
 
             if finished {
                 sender.endRefreshing()
+                self.view.hideSkeleton(transition: .crossDissolve(0.25))
                 self.tableView.reloadData()
                 self.setupTableInformation()
                 self.setupMonthlyClicksChartView()
                 self.setupBrowserChartView()
                 self.setupOSChartView()
-                self.view.hideSkeleton(transition: .crossDissolve(0.25))
             }
         })
     }
@@ -80,7 +81,7 @@ class LinkAnalyticsController: UITableViewController {
         minClicksLabel.text = numberFormatter.string(from: NSNumber(value: analyticsData!.min))
 
         maxClicksChart.widthAnchor.constraint(equalToConstant: analyticsData!.max > 300 ? CGFloat(analyticsData!.max/2) : CGFloat(150)).isActive = true
-        minClicksChart.widthAnchor.constraint(equalToConstant: analyticsData!.min > 300 ? CGFloat(analyticsData!.min/2) : CGFloat(100)).isActive = true
+        minClicksChart.widthAnchor.constraint(equalToConstant: analyticsData!.min > 300 ? CGFloat(analyticsData!.min/2) : CGFloat(35)).isActive = true
 
         totalPerYearLabel.text = "The total number of clicks per year for this link is \(numberFormatter.string(from: NSNumber(value: analyticsData!.totalPerYear)) ?? "null")."
     }

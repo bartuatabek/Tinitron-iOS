@@ -17,8 +17,6 @@ class LinksController: UITableViewController {
 
     var filter = false
     var selectedLink: Link?
-    private var currentPage = 0
-    private var showLoadingCell = false
 
     /// Data models for the table view.
     var viewModel: LinksViewModeling?
@@ -33,6 +31,9 @@ class LinksController: UITableViewController {
 
     /// Restoration state for UISearchController
     var restoredState = SearchControllerRestorableState()
+
+    private var currentPage = 0
+    private var shouldShowLoadingCell = false
 
     // MARK: - ViewController Functions
     override func viewDidLoad() {
@@ -70,11 +71,10 @@ class LinksController: UITableViewController {
         let navigationController = splitViewController.masterViewController as! UINavigationController
         let analyticsContoller = navigationController.topViewController as! AnalyticsController
         analyticsContoller.viewModel = viewModel
-        refresh(refreshControl!)
-    }
 
-    override func viewWillAppear(_ animated: Bool) {
-        tableView.reloadData()
+        tableView.restore()
+        self.tableView.scroll(to: .top, animated: true)
+        refresh(refreshControl!)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -230,37 +230,47 @@ class LinksController: UITableViewController {
     @IBAction func refresh(_ sender: UIRefreshControl) {
         tableView.restore()
         view.showAnimatedSkeleton()
-        viewModel?.fetchLinks(pageNo: 0, completion: { (finished, success, fetchedLinks) in
+        viewModel?.fetchLinks(pageNo: 0, completion: { finished, success, pageNumber, totalPages, fetchedLinks in
             if finished && success {
-                self.currentPage = 0
                 self.viewModel?.links = fetchedLinks!
                 self.sections.removeAll()
                 self.sections = self.getSectionsBasedOnDate(links: fetchedLinks!)
                 self.sections.insert([Link](), at: 0)
                 self.restorePinnedItems()
+                self.currentPage = 0
+                self.shouldShowLoadingCell = pageNumber < totalPages - 1
+
+                if self.shouldShowLoadingCell {
+                    self.sections.insert([Link](generateRandomLinks(count: 1)), at: self.sections.endIndex)
+                }
             }
 
             if finished {
                 sender.endRefreshing()
-                self.tableView.reloadData()
                 self.view.hideSkeleton(transition: .crossDissolve(0.25))
+                self.tableView.reloadData()
             }
         })
     }
 
-    private func fetchNextPage() {
-        showLoadingCell = true
-        sections.insert([Link](), at: sections.count-1)
-
-        currentPage += 1
-        viewModel?.fetchLinks(pageNo: currentPage, completion: { (finished, success, fetchedLinks) in
+    fileprivate func loadLinks() {
+        viewModel?.fetchLinks(pageNo: currentPage, completion: { (finished, success, pageNumber, totalPages, fetchedLinks) in
             if finished && success {
-                self.viewModel?.links += fetchedLinks!
+                for link in fetchedLinks! {
+                    if !(self.viewModel?.links.contains(link))! {
+                        self.viewModel?.links.append(link)
+                    }
+                }
+
                 self.sections.removeAll()
-                self.sections = self.getSectionsBasedOnDate(links: fetchedLinks!)
+                self.sections = self.getSectionsBasedOnDate(links: self.viewModel!.links)
                 self.sections.insert([Link](), at: 0)
                 self.restorePinnedItems()
-                self.showLoadingCell = false
+                self.shouldShowLoadingCell = pageNumber < totalPages - 1
+
+                if self.shouldShowLoadingCell {
+                    self.sections.insert([Link](generateRandomLinks(count: 1)), at: self.sections.endIndex)
+                }
             }
 
             if finished {
@@ -294,6 +304,8 @@ extension LinksController {
             } else {
                 return nil
             }
+        } else if shouldShowLoadingCell && section == sections.count-1 {
+            return nil
         }
 
         if let item = sections[section].first, self.tableView(tableView, numberOfRowsInSection: section) > 0 {
@@ -462,9 +474,10 @@ extension LinksController {
 }
 
 // MARK: - UITableViewDataSource
+// swiftlint:disable function_body_length
 extension LinksController {
     override func numberOfSections(in tableView: UITableView) -> Int {
-        if viewModel!.links.isEmpty {
+        if viewModel!.links.isEmpty && !self.view.isSkeletonActive {
             tableView.setEmptyMessage("No Links\n Tap ⊕ to create a new link.")
         } else {
             tableView.restore()
@@ -478,7 +491,7 @@ extension LinksController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if showLoadingCell && indexPath.section == self.sections.count-1 && indexPath.row == self.sections[self.sections.count-1].count-1 {
+        if shouldShowLoadingCell && indexPath.section == sections.count-1 && indexPath.row == sections[indexPath.section].count-1 {
             let cell = tableView.dequeueReusableCell(withIdentifier: "LoadingCell", for: indexPath)
             return cell
         }
@@ -488,7 +501,7 @@ extension LinksController {
         cell.textLabel?.text = sections[indexPath.section][indexPath.row].title
         cell.detailTextLabel?.text = "tinitron.ml/" + sections[indexPath.section][indexPath.row].shortURL
 
-        if sections[indexPath.section][indexPath.row].expirationDate < Date() {
+        if sections[indexPath.section][indexPath.row].isExpired {
             cell.detailTextLabel?.textColor = .systemPink
             cell.imageView?.tintColor = .systemPink
         } else {
@@ -513,12 +526,134 @@ extension LinksController {
             cell.transform = .identity
             cell.alpha = 1
 
-        }, completion: { (_) in
-            if indexPath.section == self.sections.count-1 && indexPath.row == self.sections[self.sections.count-1].count-1 {
-                self.fetchNextPage()
-            }
-        })
+        }, completion: nil)
 
+        if self.shouldShowLoadingCell && indexPath.section == self.sections.count-1 && indexPath.row == self.sections[indexPath.section].count-1 {
+            self.currentPage += 1
+            self.loadLinks()
+        }
+    }
+
+    override func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        let identifier = "\(indexPath.section),\(indexPath.row)" as NSString
+
+        return UIContextMenuConfiguration(
+            identifier: identifier,
+            previewProvider: nil) { _ in
+                let pinAction = UIAction(title: "Pin Link") { _ in
+                    var pinnedItems = self.defaults.stringArray(forKey: Auth.auth().currentUser!.uid) ?? [String]()
+
+                    if indexPath.section == (self.filter ? 1 : 0) {
+                        // Unpin
+                        pinnedItems = pinnedItems.filter {$0 != self.sections[indexPath.section][indexPath.row].shortURL}
+                        self.defaults.set(pinnedItems, forKey: Auth.auth().currentUser!.uid)
+                        let sectionIndex = self.unpinItem(link: self.sections[indexPath.section].remove(at: indexPath.row))
+                        tableView.reloadSections(IndexSet(arrayLiteral: self.filter ? 1 : 0, sectionIndex), with: .automatic)
+                    } else {
+                        // Pin
+                        pinnedItems.append(self.sections[indexPath.section][indexPath.row].shortURL)
+                        self.defaults.set(pinnedItems, forKey: Auth.auth().currentUser!.uid)
+                        self.sections[self.filter ? 1 : 0].append(self.sections[indexPath.section].remove(at: indexPath.row))
+                        tableView.reloadSections(IndexSet(arrayLiteral: self.filter ? 1 : 0, indexPath.section), with: .fade)
+                    }
+                }
+
+                if indexPath.section == (self.filter ? 1 : 0) {
+                    pinAction.title = "Unpin Link"
+                    pinAction.image = UIImage(systemName: "pin.slash")
+                } else {
+                    pinAction.title = "Pin Link"
+                    pinAction.image = UIImage(systemName: "pin")
+                }
+
+                let copyAction = UIAction(title: "Copy Link", image: UIImage(systemName: "rectangle.on.rectangle")) { (_) in
+                    UIPasteboard.general.string = "tinitron.ml/" + self.sections[indexPath.section][indexPath.row].shortURL
+                }
+
+                let shareAction = UIAction(
+                    title: "Share",
+                    image: UIImage(systemName: "square.and.arrow.up")) { _ in
+                        if let url = URL(string: "https://" + self.sections[indexPath.section][indexPath.row].shortURL) {
+                            let items: [Any] = [url]
+                            let activityController = UIActivityViewController(activityItems: items, applicationActivities: nil)
+                            activityController.popoverPresentationController?.sourceView = tableView.cellForRow(at: indexPath)?.contentView
+                            self.present(activityController, animated: true)
+                        }
+                }
+
+                let expireAction = UIAction(
+                    title: "Expire Link",
+                    image: UIImage(systemName: "hourglass"), attributes: .destructive) { _ in
+                        let linkKey = self.sections[indexPath.section][indexPath.row].shortURL
+                        self.viewModel?.expireLinks(links: [linkKey], completion: { (finished, success) in
+                            if finished && success {
+                                if let index = self.viewModel?.links.firstIndex(where: {$0.shortURL == linkKey}) {
+                                    self.viewModel?.links[index].expirationDate = Date()
+                                }
+                            }
+                        })
+
+                        self.sections[indexPath.section][indexPath.row].expirationDate = Date()
+                        tableView.reloadRows(at: [indexPath], with: .automatic)
+                }
+
+                let deleteAction = UIAction(
+                    title: "Delete Link",
+                    image: UIImage(systemName: "trash.fill"), attributes: .destructive) { _ in
+                        let deleteKey = self.sections[indexPath.section][indexPath.row].shortURL
+                        self.viewModel?.deleteLinks(links: [deleteKey], completion: { (finished, success) in
+                            if finished && success {
+                                if let index = self.viewModel?.links.firstIndex(where: {$0.shortURL == deleteKey}) {
+                                    self.viewModel?.links.remove(at: index)
+                                }
+                            }
+                        })
+
+                        self.sections[indexPath.section].remove(at: indexPath.row)
+                        tableView.deleteRows(at: [indexPath], with: .automatic)
+                }
+
+                if !self.sections[indexPath.section][indexPath.row].isExpired {
+                    return UIMenu(title: "", image: nil, children: [pinAction, copyAction, shareAction, expireAction, deleteAction])
+                } else {
+                    return UIMenu(title: "", image: nil, children: [pinAction, copyAction, shareAction, deleteAction])
+                }
+      }
+    }
+
+//    override func tableView(_ tableView: UITableView, previewForHighlightingContextMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
+//        guard
+//            let identifier = configuration.identifier as? String,
+//            let section = Int(identifier.components(separatedBy: ",").first!),
+//            let row = Int(identifier.components(separatedBy: ",")[1]),
+//            let cell = tableView.cellForRow(at: IndexPath(row: row, section: section))
+//            else {
+//                return nil
+//        }
+//
+//        // 3
+//        return UITargetedPreview(view: cell.imageView!)
+//    }
+
+    override func tableView(_ tableView: UITableView, willPerformPreviewActionForMenuWith configuration: UIContextMenuConfiguration, animator: UIContextMenuInteractionCommitAnimating) {
+
+        guard
+            let identifier = configuration.identifier as? String,
+            let section = Int(identifier.components(separatedBy: ",").first!),
+            let row = Int(identifier.components(separatedBy: ",")[1])
+            else {
+                return
+        }
+
+        animator.addCompletion {
+            self.selectedLink = self.sections[section][row]
+            let detailViewController = self.storyboard?.instantiateViewController(withIdentifier: "LinkDetailsNavigationController") as! UINavigationController
+            let linkDetailsController = detailViewController.viewControllers.first as! LinkDetailsController
+            linkDetailsController.viewModel = self.viewModel
+            linkDetailsController.link = self.selectedLink
+            self.splitViewController?.showDetailViewController(detailViewController, sender: self)
+            self.tableView.deselectRow(at: IndexPath(row: row, section: section), animated: true)
+        }
     }
 }
 
@@ -556,7 +691,7 @@ extension LinksController: UISearchControllerDelegate {
 // MARK: - SkeletonTableViewDataSource
 extension LinksController: SkeletonTableViewDataSource {
     func numSections(in collectionSkeletonView: UITableView) -> Int {
-        return 10
+        return 5
     }
 
     func collectionSkeletonView(_ skeletonView: UITableView, numberOfRowsInSection section: Int) -> Int {
