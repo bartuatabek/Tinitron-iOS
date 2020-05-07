@@ -8,8 +8,6 @@
 
 import Firebase
 import Alamofire
-import ReactiveSwift
-import ReactiveCocoa
 
 protocol UserAccountViewModeling: AccountViewModeling {
 

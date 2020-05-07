@@ -18,6 +18,5 @@ target 'Tinitron' do
   pod 'SkeletonView'
   pod 'ReactiveCocoa'
   pod 'Firebase/Auth'
-  pod 'Firebase/Analytics'
   pod 'IQKeyboardManagerSwift'
 end
