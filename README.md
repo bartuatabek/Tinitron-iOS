@@ -1,7 +1,7 @@
 # Tinitron iOS (Client iOS application for Tinitron) 
 (Built for the CS 443 Course Project Group #9)
 
-Shorten, create and share trusted, powerful links for your business. Bitly helps you maximize the impact of every digital initiative.
+Shorten, create and share trusted, powerful links for your business. Tinitron helps you maximize the impact of every digital initiative.
 
 ## Features
 **Shorten**
