@@ -41,4 +41,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
+
+    override func buildMenu(with builder: UIMenuBuilder) {
+        super.buildMenu(with: builder)
+
+        builder.remove(menu: .services)
+        builder.remove(menu: .format)
+        builder.remove(menu: .toolbar)
+
+        let helpCommand = UIKeyCommand(title: "Tinitron Help", action: #selector(showHelp), input: "")
+        let helpMenu = UIMenu(title: "Tinitron Help", image: nil, identifier: UIMenu.Identifier("help"), options: .displayInline, children: [helpCommand])
+        builder.replaceChildren(ofMenu: .help) { (_) -> [UIMenuElement] in
+            return [helpMenu]
+        }
+    }
+
+    @objc private func showHelp() {
+         UIApplication.shared.open(URL(string: "https://tinitron.cf")!)
+    }
+
+    @objc private func createLink() {
+
+    }
 }
