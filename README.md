@@ -1,7 +1,17 @@
-# Tinitron iOS (Client iOS application for Tinitron) 
+<p align="center">
+   <img src="Tinitron/Assets.xcassets/AppIcon.appiconset/icon-128.png">
+</p>
+
+# Tinitron (Client application for Tinitron) 
 (Built for the CS 443 Course Project Group #9)
 
+![Tinitron macOS screenshot](images/tinitron.png)
+
 Shorten, create and share trusted, powerful links for your business. Tinitron helps you maximize the impact of every digital initiative.
+
+## Get it
+
+[![Download on the App Store](images/mas_badge.png)](https://apps.apple.com/us/app/tinitron/id1509489379)
 
 ## Features
 **Shorten**
@@ -38,3 +48,6 @@ $ pod update
 
 Open Tinitron.xcworkspace set developement account.
 Build project then run.
+
+## License
+Tinitron for iOS & macOS is licensed under the GNU Public License, version 2.0. See [LICENSE](LICENSE) for more information.
