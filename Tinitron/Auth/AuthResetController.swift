@@ -11,6 +11,7 @@ import LGButton
 import ReactiveSwift
 import ReactiveCocoa
 import IQKeyboardManagerSwift
+import MaterialComponents.MaterialTextControls_OutlinedTextFields
 
 class AuthResetController: UIViewController {
 
@@ -18,7 +19,7 @@ class AuthResetController: UIViewController {
     var isValidEmail = false
     var returnKeyHandler: IQKeyboardReturnKeyHandler?
 
-    @IBOutlet weak var emailTextField: FormTextField!
+    @IBOutlet weak var emailTextField: MDCOutlinedTextField!
     @IBOutlet weak var resetPasswordButton: LGButton!
 
     @IBOutlet weak var emailErrorLabel: UILabel!
@@ -33,10 +34,27 @@ class AuthResetController: UIViewController {
         self.viewModel?.resetErrorMessages()
         bindUIElements()
         setupViews()
+
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            AppUtility.lockOrientation(.portrait, andRotateTo: .portrait)
+        }
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        AppUtility.lockOrientation(.all)
     }
 
     // MARK: - ViewController Functions
     fileprivate func setupViews() {
+        #if targetEnvironment(macCatalyst)
+        emailTextField.label.text = "Email"
+        emailTextField.setOutlineColor(.systemBlue, for: .editing)
+        emailTextField.setOutlineColor(.darkGray, for: .normal)
+        emailTextField.setFloatingLabelColor(.systemBlue, for: .editing)
+        emailTextField.setNormalLabelColor(.darkGray, for: .normal)
+        #endif
+
         if self.restorationIdentifier! == "ResetPassword" {
             if isValidEmail {
                 resetPasswordButton.isEnabled = true
@@ -57,7 +75,7 @@ class AuthResetController: UIViewController {
     }
 
     // MARK: TextField Actions
-    @IBAction func emailTextDidChange(_ sender: FormTextField) {
+    @IBAction func emailTextDidChange(_ sender: UITextField) {
         emailTextField.text = emailTextField.text?.trimmingCharacters(in: .whitespaces)
 
         if let input = emailTextField.text, input.count > 0 {

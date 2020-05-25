@@ -261,6 +261,14 @@ extension Date {
         dateFormatter.dateFormat = "MMMM"
         return dateFormatter.string(from: self)
     }
+
+    func get(_ components: Calendar.Component..., calendar: Calendar = Calendar.current) -> DateComponents {
+        return calendar.dateComponents(Set(components), from: self)
+    }
+
+    func get(_ component: Calendar.Component, calendar: Calendar = Calendar.current) -> Int {
+        return calendar.component(component, from: self)
+    }
 }
 
 // MARK: - String Extensions
@@ -347,4 +355,28 @@ extension UITableView {
     enum scrollsTo {
         case top, bottom
     }
+}
+
+// MARK: - UserDefaults Extensions
+extension UserDefaults {
+  enum Key: String {
+    case reviewWorthyActionCount
+    case lastReviewRequestAppVersion
+  }
+
+  func integer(forKey key: Key) -> Int {
+    return integer(forKey: key.rawValue)
+  }
+
+  func string(forKey key: Key) -> String? {
+    return string(forKey: key.rawValue)
+  }
+
+  func set(_ integer: Int, forKey key: Key) {
+    set(integer, forKey: key.rawValue)
+  }
+
+  func set(_ object: Any?, forKey key: Key) {
+    set(object, forKey: key.rawValue)
+  }
 }

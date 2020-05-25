@@ -13,6 +13,7 @@ import ReactiveSwift
 import ReactiveCocoa
 import IQKeyboardManagerSwift
 import AuthenticationServices
+import MaterialComponents.MaterialTextControls_OutlinedTextFields
 
 class AuthSignUpController: UIViewController {
 
@@ -22,9 +23,9 @@ class AuthSignUpController: UIViewController {
 
     var password: String?, confirmPassword: String?
 
-    @IBOutlet weak var emailTextField: FormTextField!
-    @IBOutlet weak var passwordTextField: FormTextField!
-    @IBOutlet weak var confirmPasswordTextField: FormTextField!
+    @IBOutlet weak var emailTextField: MDCOutlinedTextField!
+    @IBOutlet weak var passwordTextField: MDCOutlinedTextField!
+    @IBOutlet weak var confirmPasswordTextField: MDCOutlinedTextField!
     @IBOutlet weak var registerButton: LGButton!
 
     @IBOutlet weak var emailErrorLabel: UILabel!
@@ -40,19 +41,55 @@ class AuthSignUpController: UIViewController {
         self.viewModel?.resetErrorMessages()
         bindUIElements()
         setupViews()
+
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            AppUtility.lockOrientation(.portrait, andRotateTo: .portrait)
+        }
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        AppUtility.lockOrientation(.all)
     }
 
     override func viewWillLayoutSubviews() {
-           setupSignInWIthApple()
-       }
+        setupSignInWIthApple()
+    }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-           super.traitCollectionDidChange(previousTraitCollection)
-           setupSignInWIthApple()
-       }
+        super.traitCollectionDidChange(previousTraitCollection)
+        setupSignInWIthApple()
+    }
+
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        coordinator.animate(alongsideTransition: nil) { _ in
+            self.setupSignInWIthApple()
+        }
+    }
 
     // MARK: - ViewController Functions
     fileprivate func setupViews() {
+        #if targetEnvironment(macCatalyst)
+        emailTextField.label.text = "Email"
+        emailTextField.setOutlineColor(.systemBlue, for: .editing)
+        emailTextField.setOutlineColor(.darkGray, for: .normal)
+        emailTextField.setFloatingLabelColor(.systemBlue, for: .editing)
+        emailTextField.setNormalLabelColor(.darkGray, for: .normal)
+
+        passwordTextField.label.text = "Password"
+        passwordTextField.setOutlineColor(.systemBlue, for: .editing)
+        passwordTextField.setOutlineColor(.darkGray, for: .normal)
+        passwordTextField.setFloatingLabelColor(.systemBlue, for: .editing)
+        passwordTextField.setNormalLabelColor(.darkGray, for: .normal)
+
+        confirmPasswordTextField.label.text = "ConfirmPassword"
+        confirmPasswordTextField.setOutlineColor(.systemBlue, for: .editing)
+        confirmPasswordTextField.setOutlineColor(.darkGray, for: .normal)
+        confirmPasswordTextField.setFloatingLabelColor(.systemBlue, for: .editing)
+        confirmPasswordTextField.setNormalLabelColor(.darkGray, for: .normal)
+        #endif
+
         if isValidEmail && isValidPassword && passwordsMatch {
             registerButton.isEnabled = true
             registerButton.alpha = 1.0
@@ -74,7 +111,9 @@ class AuthSignUpController: UIViewController {
             authorizationButton = ASAuthorizationAppleIDButton(authorizationButtonType: .signIn, authorizationButtonStyle: .whiteOutline)
         }
 
+        #if !targetEnvironment(macCatalyst)
         authorizationButton.cornerRadius = 25
+        #endif
         authorizationButton.contentMode = .scaleAspectFit
         authorizationButton.frame = signInWithAppleContainer.bounds
         authorizationButton.addTarget(self, action: #selector(handleAppleLogin), for: .touchUpInside)
@@ -100,11 +139,11 @@ class AuthSignUpController: UIViewController {
     }
 
     // MARK: TextField Actions
-    @IBAction func emailTextDidChange(_ sender: FormTextField) {
+    @IBAction func emailTextDidChange(_ sender: UITextField) {
         emailTextField.text = emailTextField.text?.trimmingCharacters(in: .whitespaces)
 
         if let input = emailTextField.text, input.count > 0 {
-                isValidEmail = (viewModel?.isValidEmail(email: sender.text))!
+            isValidEmail = (viewModel?.isValidEmail(email: sender.text))!
         } else if emailTextField.text!.isEmpty {
             isValidEmail = false
             viewModel?.resetErrorMessage(errorMessage: .top)
@@ -113,7 +152,7 @@ class AuthSignUpController: UIViewController {
         setupViews()
     }
 
-    @IBAction func passwordTextDidChange(_ sender: FormTextField) {
+    @IBAction func passwordTextDidChange(_ sender: UITextField) {
         password = passwordTextField.text
         isValidPassword = (viewModel?.isSecurePassword(password: passwordTextField.text))!
         passwordsMatch = viewModel!.isPasswordsMatching(password: password, verify: confirmPassword)
@@ -165,7 +204,12 @@ class AuthSignUpController: UIViewController {
 
     @IBAction func goToLogin(_ sender: Any) {
         if !(navigationController?.popToViewController(ofClass: AuthSignInController.self))! {
-            let mainStoryboard = UIStoryboard(name: "Auth", bundle: nil)
+            var mainStoryboard: UIStoryboard
+            #if targetEnvironment(macCatalyst)
+            mainStoryboard = UIStoryboard(name: "Auth_Mac", bundle: nil)
+            #else
+            mainStoryboard = UIStoryboard(name: "Auth", bundle: nil)
+            #endif
             if let viewController = mainStoryboard.instantiateViewController(withIdentifier: "Login") as? AuthSignInController {
                 viewController.viewModel = self.viewModel
                 if let sender = sender as? FormTextField, sender == self.emailTextField {
@@ -204,7 +248,7 @@ extension AuthSignUpController: ASAuthorizationControllerDelegate, ASAuthorizati
 
             viewModel?.signInWithApple(idTokenString: idTokenString, nonce: nonce, completion: { (finished, result) in
                 if finished && result {
-                     self.viewModel?.segueToHome()
+                    self.viewModel?.segueToHome()
                 } else {
                     self.activityIndicatorContainer.isHidden = true
                 }

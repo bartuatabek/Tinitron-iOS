@@ -7,6 +7,8 @@
 //
 
 import UIKit
+import Firebase
+import Kingfisher
 
 // swiftlint:disable force_cast
 class AccountController: UITableViewController {
@@ -28,13 +30,39 @@ class AccountController: UITableViewController {
     // MARK: - ViewController Functions
     fileprivate func bindUIElements() {
         profilePicture.image = viewModel?.profilePicture
+        setupViews()
+    }
+
+    fileprivate func setupViews() {
+        let url = Auth.auth().currentUser?.photoURL
+        let processor = DownsamplingImageProcessor(size: profilePicture.frame.size)
+        profilePicture.kf.setImage(
+            with: url,
+            placeholder: viewModel?.profilePicture,
+            options: [
+                .processor(processor),
+                .scaleFactor(UIScreen.main.scale),
+                .transition(.fade(1)),
+                .cacheOriginalImage
+        ]) { result in
+            switch result {
+            case .success(let value):
+                self.viewModel?.profilePicture = value.image
+            case .failure(let error):
+                print("Job failed: \(error.localizedDescription)")
+            }
+        }
     }
 
     // MARK: - Button actions
     @IBAction func signOut(_ sender: Any) {
         viewModel?.signOut(completion: { (success) in
             if success {
+                #if targetEnvironment(macCatalyst)
+                self.performSegue(withIdentifier: "goToSignOutMac", sender: self)
+                #else
                 self.performSegue(withIdentifier: "goToSignOut", sender: self)
+                #endif
             }
         })
     }

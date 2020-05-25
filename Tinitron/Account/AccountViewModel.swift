@@ -8,6 +8,7 @@
 
 import Firebase
 import Alamofire
+import FirebaseStorage
 
 protocol UserAccountViewModeling: AccountViewModeling {
 
@@ -155,6 +156,41 @@ class ProfileViewModel: UserAccountViewModeling {
     func changeProfilePicture(with photo: UIImage) {
         if photo != UIImage(systemName: "person.crop.circle") {
             saveImage(imageName: Auth.auth().currentUser!.uid, image: photo)
+        }
+
+        // Upload image to storage and get the image url
+        let currentUser = Auth.auth().currentUser
+        let uid = currentUser?.uid ?? ""
+        let storageRef = Storage.storage().reference().child("/users/\(uid)/profilePicture.jpeg")
+
+        if let uploadData = photo.jpegData(compressionQuality: 1.0) {
+            // Create file metadata including the content type
+            let metadata = StorageMetadata()
+            metadata.contentType = "image/jpeg"
+            storageRef.putData(uploadData, metadata: metadata, completion: { (_, error) in
+                if let error = error {
+                    print("Image upload failed: ", error)
+                    return
+                } else {
+                    storageRef.downloadURL(completion: { (url, error) in
+                        if let error = error {
+                            print("URL download failed: ", error)
+                        } else {
+                            // Update Display Name & photoURL
+                            print("Image URL: \((url?.absoluteString)!)")
+
+                            let changeRequest = Auth.auth().currentUser?.createProfileChangeRequest()
+                            changeRequest?.photoURL = url
+                            changeRequest?.commitChanges(completion: { (error) in
+                                if let error = error {
+                                    print("Profile update failed: ", error)
+                                } else {
+                                }
+                            })
+                        }
+                    })
+                }
+            })
         }
     }
 

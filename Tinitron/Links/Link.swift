@@ -21,14 +21,16 @@ struct Link: Equatable {
     // URL Customizations
     var expirationDate: Date
     var password: String?
+    var maxAllowedClicks: Int?
 
-    init(title: String, creationDate: Date = Date(), originalURL: String, shortURL: String, expirationDate: Date = Calendar.current.date(byAdding: .day, value: 30, to: Date())!, password: String?) {
+    init(title: String, creationDate: Date = Date(), originalURL: String, shortURL: String, expirationDate: Date = Calendar.current.date(byAdding: .day, value: 30, to: Date())!, password: String?, maxAllowedClicks: Int? = -1) {
         self.title = title
         self.creationDate = creationDate
         self.originalURL = originalURL
         self.shortURL = shortURL
         self.expirationDate = expirationDate
         self.password = password
+        self.maxAllowedClicks = maxAllowedClicks
     }
 
     var daysUntilExpiration: Int {

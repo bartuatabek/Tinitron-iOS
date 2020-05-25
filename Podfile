@@ -14,9 +14,12 @@ target 'Tinitron' do
   pod 'Alamofire'
   pod 'SwiftLint'
   pod 'SwiftyJSON'
+  pod 'Kingfisher'
   pod 'LayoutHelper'
   pod 'SkeletonView'
   pod 'ReactiveCocoa'
   pod 'Firebase/Auth'
+  pod 'Firebase/Storage'
   pod 'IQKeyboardManagerSwift'
+  pod 'MaterialComponents/TextControls+OutlinedTextFields'
 end

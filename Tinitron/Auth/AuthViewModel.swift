@@ -70,6 +70,16 @@ class AuthViewModel: AuthViewModeling {
     }
 
     func segueToHome() {
+        let center = UNUserNotificationCenter.current()
+
+        center.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, _) in
+            if granted {
+                print("User allowed notifications.")
+            } else {
+                print("User did not allow notifications.")
+            }
+        }
+
         let defaults = UserDefaults.standard
         defaults.set("false", forKey: Auth.auth().currentUser!.uid)
 

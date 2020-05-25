@@ -21,6 +21,8 @@ protocol LinksViewModeling {
     func updateLink(shortURL: String, link: Link, completion: @escaping (Bool, Bool) -> Void)
     func deleteLinks(links: [String], completion: @escaping (Bool, Bool) -> Void)
     func expireLinks(links: [String], completion: @escaping (Bool, Bool) -> Void)
+    func deleteAllLinksOfUser(completion: @escaping (Bool, Bool) -> Void)
+    func expireAllLinksOfUser(completion: @escaping (Bool, Bool) -> Void)
 
     func fetchLinks(pageNo: Int, completion: @escaping (Bool, Bool, Int, Int, [Link]?) -> Void)
     func fetchLink(shortURL: String, completion: @escaping (Bool, Bool, Link?) -> Void)
@@ -36,6 +38,8 @@ class LinksViewModel: LinksViewModeling {
 
     var links: [Link]
     var analyticsData: [LinkAnalytics]
+
+    let notificationCenter = UNUserNotificationCenter.current()
 
     // MARK: - Initialization
     init() {
@@ -58,7 +62,8 @@ class LinksViewModel: LinksViewModeling {
                 "title": link.title,
                 "originalURL": link.originalURL,
                 "creationDate": formatter.string(from: link.creationDate),
-                "expirationDate": formatter.string(from: link.expirationDate)
+                "expirationDate": formatter.string(from: link.expirationDate),
+                "maximumAllowedClicks": "\(link.maxAllowedClicks ?? -1)"
             ]
 
             if !link.shortURL.isEmpty {
@@ -115,7 +120,8 @@ class LinksViewModel: LinksViewModeling {
             var parameters: [String: String?] = [
                 "title": link.title,
                 "shortURL": link.shortURL,
-                "expirationDate": formatter.string(from: link.expirationDate)
+                "expirationDate": formatter.string(from: link.expirationDate),
+                "maximumAllowedClicks": "\(link.maxAllowedClicks ?? -1)"
             ]
 
             if let password = link.password {
@@ -143,6 +149,8 @@ class LinksViewModel: LinksViewModeling {
     }
 
     func deleteLinks(links: [String], completion: @escaping (Bool, Bool) -> Void) {
+        notificationCenter.removePendingNotificationRequests(withIdentifiers: links)
+
         let currentUser = Auth.auth().currentUser
         currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
             if let error = error {
@@ -175,6 +183,8 @@ class LinksViewModel: LinksViewModeling {
     }
 
     func expireLinks(links: [String], completion: @escaping (Bool, Bool) -> Void) {
+        notificationCenter.removePendingNotificationRequests(withIdentifiers: links)
+
         let currentUser = Auth.auth().currentUser
         currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
             if let error = error {
@@ -191,6 +201,66 @@ class LinksViewModel: LinksViewModeling {
             ]
 
             AF.request("http://34.67.248.87:8080/links/expire", method: .post, parameters: parameters, encoder: JSONParameterEncoder.default, headers: headers)
+                .validate(statusCode: 200..<300)
+                .responseJSON { response in
+//                    debugPrint(response)
+                    switch response.result {
+                    case .success:
+                        completion(true, true)
+                    case .failure(let error):
+                        print(error)
+                        self.controller?.showAlert(withTitle: "Operation Failed", message: error.localizedDescription, option1: "OK", option2: nil)
+                        completion(true, false)
+                    }
+            }
+        }
+    }
+
+    func deleteAllLinksOfUser(completion: @escaping (Bool, Bool) -> Void) {
+        let currentUser = Auth.auth().currentUser
+        currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
+            if let error = error {
+                print("Cannot get token: ", error )
+                return
+            }
+
+            let parameters: [String: [String]] = [:]
+
+            let headers: HTTPHeaders = [
+                "Authorization": "Bearer \(idToken ?? "")"
+            ]
+
+            AF.request("http://34.67.248.87:8080/links/" + (currentUser?.uid ?? "") + "/delete_all", method: .delete, parameters: parameters, encoder: JSONParameterEncoder.default, headers: headers)
+                .validate(statusCode: 200..<300)
+                .responseJSON { response in
+//                    debugPrint(response)
+                    switch response.result {
+                    case .success:
+                        completion(true, true)
+                    case .failure(let error):
+                        print(error)
+                        self.controller?.showAlert(withTitle: "Operation Failed", message: error.localizedDescription, option1: "OK", option2: nil)
+                        completion(true, false)
+                    }
+            }
+        }
+    }
+
+    func expireAllLinksOfUser(completion: @escaping (Bool, Bool) -> Void) {
+        let currentUser = Auth.auth().currentUser
+        currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
+            if let error = error {
+                print("Cannot get token: ", error )
+                return
+            }
+
+            let parameters: [String: [String]] = [:]
+
+            let headers: HTTPHeaders = [
+                "Authorization": "Bearer \(idToken ?? "")"
+            ]
+
+            AF.request("http://34.67.248.87:8080/links/" + (currentUser?.uid ?? "") + "/expire_all", method: .post, parameters: parameters, encoder: JSONParameterEncoder.default, headers: headers)
                 .validate(statusCode: 200..<300)
                 .responseJSON { response in
 //                    debugPrint(response)
@@ -245,7 +315,8 @@ class LinksViewModel: LinksViewModeling {
                             let originalURL = link["originalURL"].rawString()
                             let expirationDate = dateFormatter.date(from: link["expirationDate"].rawString()!)
                             let password = link["password"].rawString() == "null" ? nil : link["password"].rawString()
-                            let fetchedLink = Link(title: title!, creationDate: creationDate!, originalURL: originalURL!, shortURL: shortURL!, expirationDate: expirationDate!, password: password)
+                            let maxClicks = link["maximumAllowedClicks"].int
+                            let fetchedLink = Link(title: title!, creationDate: creationDate!, originalURL: originalURL!, shortURL: shortURL!, expirationDate: expirationDate!, password: password, maxAllowedClicks: maxClicks)
                             fetchedLinks.append(fetchedLink)
                         }
 
@@ -287,8 +358,9 @@ class LinksViewModel: LinksViewModeling {
                         let originalURL = json["originalURL"].rawString()
                         let expirationDate = dateFormatter.date(from: json["expirationDate"].rawString()!)
                         let password = json["password"].rawString() == "null" ? nil : json["password"].rawString()
+                        let maxClicks = json["maximumAllowedClicks"].int
 
-                        let link = Link(title: title!, creationDate: creationDate!, originalURL: originalURL!, shortURL: shortURL!, expirationDate: expirationDate!, password: password)
+                        let link = Link(title: title!, creationDate: creationDate!, originalURL: originalURL!, shortURL: shortURL!, expirationDate: expirationDate!, password: password, maxAllowedClicks: maxClicks)
                         completion(true, true, link)
                     case .failure(let error):
                         print(error)

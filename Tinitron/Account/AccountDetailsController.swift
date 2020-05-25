@@ -8,6 +8,8 @@
 
 import UIKit
 import Photos
+import Firebase
+import Kingfisher
 
 class AccountDetailsController: UITableViewController {
 
@@ -35,6 +37,25 @@ class AccountDetailsController: UITableViewController {
     // MARK: - ViewController Functions
     fileprivate func setupViews() {
         self.isModalInPresentation = true
+
+        let url = Auth.auth().currentUser?.photoURL
+        let processor = DownsamplingImageProcessor(size: profilePicture.frame.size)
+        profilePicture.kf.setImage(
+            with: url,
+            placeholder: viewModel?.profilePicture,
+            options: [
+                .processor(processor),
+                .scaleFactor(UIScreen.main.scale),
+                .transition(.fade(1)),
+                .cacheOriginalImage
+        ]) { result in
+            switch result {
+            case .success(let value):
+                self.viewModel?.profilePicture = value.image
+            case .failure(let error):
+                print("Job failed: \(error.localizedDescription)")
+            }
+        }
     }
 
     fileprivate func bindUIElements() {
@@ -103,7 +124,7 @@ class AccountDetailsController: UITableViewController {
         let alert = UIAlertController(title: nil, message: "This will delete all your links and remove all your data from the app.", preferredStyle: .actionSheet)
 
         alert.addAction(UIAlertAction(title: "Delete Account", style: .destructive, handler: { _ in
-            let alert = UIAlertController(title: nil, message: "You will need to enter your password to delete your accout.", preferredStyle: .alert)
+            let alert = UIAlertController(title: nil, message: "You will need to enter your password to delete your account.", preferredStyle: .alert)
             alert.addTextField { (textField) in
                 textField.placeholder = "Password"
                 textField.isSecureTextEntry = true
@@ -112,7 +133,11 @@ class AccountDetailsController: UITableViewController {
                 let textField = alert?.textFields![0]
                 self.viewModel?.deleteAccount(password: (textField?.text)!, completion: { (success) in
                     if success {
+                        #if targetEnvironment(macCatalyst)
+                        self.performSegue(withIdentifier: "goToAuthMac", sender: self)
+                        #else
                         self.performSegue(withIdentifier: "goToAuth", sender: self)
+                        #endif
                     }
                 })
             }))

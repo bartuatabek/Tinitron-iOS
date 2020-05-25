@@ -28,6 +28,7 @@ class LinkDetailsController: UITableViewController {
     @IBOutlet weak var shortURLTextField: FormTextField!
 
     @IBOutlet weak var expirationDateTextField: UITextField!
+    @IBOutlet weak var maxClicksTextField: UITextField!
     @IBOutlet weak var passwordTextField: FormTextField!
 
     @IBOutlet weak var saveChangesButton: LGButton!
@@ -71,6 +72,7 @@ class LinkDetailsController: UITableViewController {
             titleTextField.isEnabled = false
             shortURLTextField.isEnabled = false
             expirationDateTextField.isEnabled = false
+            maxClicksTextField.isEnabled = false
             passwordTextField.isEnabled = false
             saveChangesButton.alpha = 0.5
             saveChangesButton.isEnabled = false
@@ -87,6 +89,11 @@ class LinkDetailsController: UITableViewController {
 
         expirationDateTextField.text = dateFormatter.string(from: link!.expirationDate)
         passwordTextField.text = link?.password
+        if link?.maxAllowedClicks == -1 {
+            maxClicksTextField.placeholder = "Unlimited"
+        } else {
+            maxClicksTextField.text = "\(link!.maxAllowedClicks!)"
+        }
         checkExpiration()
 
         key = link?.shortURL
@@ -129,6 +136,12 @@ class LinkDetailsController: UITableViewController {
         link?.shortURL = shortURLTextField.text!
     }
 
+    @IBAction func maxClicksTextFieldEditingEnd(_ sender: Any) {
+        if !maxClicksTextField.text!.isEmpty && Int(maxClicksTextField.text!) != link?.maxAllowedClicks {
+            link?.maxAllowedClicks = Int(maxClicksTextField.text ?? "-1")
+        }
+    }
+
     @IBAction func passwordTextFieldEditingEnd(_ sender: Any) {
         if passwordTextField.text != link?.password {
             link?.password = passwordTextField.text
@@ -147,7 +160,12 @@ class LinkDetailsController: UITableViewController {
     @IBAction func shareLink(_ sender: Any) {
         if let url = URL(string: "http://tinitron.ml/" + link!.shortURL) {
             let items: [Any] = [url]
-            let activityController = UIActivityViewController(activityItems: items, applicationActivities: nil)
+
+            let qrItem = QRCodeActivity(title: "Show QR Code", image: UIImage(systemName: "qrcode")) { _ in
+                self.performSegue(withIdentifier: "showQRCode", sender: self)
+            }
+
+            let activityController = UIActivityViewController(activityItems: items, applicationActivities: [qrItem])
             activityController.popoverPresentationController?.barButtonItem = sender as? UIBarButtonItem
             present(activityController, animated: true)
         }
@@ -193,6 +211,13 @@ class LinkDetailsController: UITableViewController {
             }
         })
     }
+
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showQRCode" {
+            let qrCodeController = segue.destination as? QRCodeController
+            qrCodeController?.shortURL = key
+        }
+    }
 }
 
 // MARK: - UITableViewDataSource
@@ -205,6 +230,8 @@ extension LinkDetailsController {
         } else if indexPath.section == 2 && indexPath.row == 0 {
             expirationDateTextField.becomeFirstResponder()
         } else if indexPath.section == 2 && indexPath.row == 1 {
+            maxClicksTextField.becomeFirstResponder()
+        } else if indexPath.section == 2 && indexPath.row == 2 {
             passwordTextField.becomeFirstResponder()
         } else if indexPath.section == 3 {
             let storyboard = UIStoryboard(name: "Analytics", bundle: nil)

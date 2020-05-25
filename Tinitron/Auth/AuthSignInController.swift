@@ -12,6 +12,7 @@ import ReactiveSwift
 import ReactiveCocoa
 import IQKeyboardManagerSwift
 import AuthenticationServices
+import MaterialComponents.MaterialTextControls_OutlinedTextFields
 
 class AuthSignInController: UIViewController {
 
@@ -19,8 +20,8 @@ class AuthSignInController: UIViewController {
     var isValidEmail = false, isValidPassword = false, email = ""
     var returnKeyHandler: IQKeyboardReturnKeyHandler?
 
-    @IBOutlet weak var inputTextField: FormTextField!
-    @IBOutlet weak var credentialTextField: FormTextField!
+    @IBOutlet weak var inputTextField: MDCOutlinedTextField!
+    @IBOutlet weak var credentialTextField: MDCOutlinedTextField!
     @IBOutlet weak var loginButton: LGButton!
 
     @IBOutlet weak var inputErrorLabel: UILabel!
@@ -35,10 +36,26 @@ class AuthSignInController: UIViewController {
         self.viewModel?.resetErrorMessages()
         bindUIElements()
         setupViews()
+
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            AppUtility.lockOrientation(.portrait, andRotateTo: .portrait)
+        }
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        AppUtility.lockOrientation(.all)
     }
 
     override func viewWillLayoutSubviews() {
         setupSignInWIthApple()
+    }
+
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        coordinator.animate(alongsideTransition: nil) { _ in
+            self.setupSignInWIthApple()
+        }
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -48,6 +65,20 @@ class AuthSignInController: UIViewController {
 
     // MARK: - ViewController Functions
     fileprivate func setupViews() {
+        #if targetEnvironment(macCatalyst)
+        inputTextField.label.text = "Email"
+        inputTextField.setOutlineColor(.systemBlue, for: .editing)
+        inputTextField.setOutlineColor(.darkGray, for: .normal)
+        inputTextField.setFloatingLabelColor(.systemBlue, for: .editing)
+        inputTextField.setNormalLabelColor(.darkGray, for: .normal)
+
+        credentialTextField.label.text = "Password"
+        credentialTextField.setOutlineColor(.systemBlue, for: .editing)
+        credentialTextField.setOutlineColor(.darkGray, for: .normal)
+        credentialTextField.setFloatingLabelColor(.systemBlue, for: .editing)
+        credentialTextField.setNormalLabelColor(.darkGray, for: .normal)
+        #endif
+
         if isValidEmail && isValidPassword {
             loginButton.isEnabled = true
             loginButton.alpha = 1.0
@@ -69,7 +100,9 @@ class AuthSignInController: UIViewController {
             authorizationButton = ASAuthorizationAppleIDButton(authorizationButtonType: .signIn, authorizationButtonStyle: .whiteOutline)
         }
 
+        #if !targetEnvironment(macCatalyst)
         authorizationButton.cornerRadius = 25
+        #endif
         authorizationButton.contentMode = .scaleAspectFit
         authorizationButton.frame = signInWithAppleContainer.bounds
         authorizationButton.addTarget(self, action: #selector(handleAppleLogin), for: .touchUpInside)
@@ -89,16 +122,11 @@ class AuthSignInController: UIViewController {
     }
 
     // MARK: TextField Actions
-    @IBAction func inputTextDidChange(_ sender: FormTextField) {
+    @IBAction func inputTextDidChange(_ sender: UITextField) {
         inputTextField.text = inputTextField.text?.trimmingCharacters(in: .whitespaces)
 
         if let input = inputTextField.text, input.count > 0 {
-            if input.contains("@") {
                 isValidEmail = (viewModel?.isValidEmail(email: sender.text))!
-            } else {
-                isValidEmail = true
-                viewModel?.resetErrorMessage(errorMessage: .top)
-            }
         } else if inputTextField.text!.isEmpty {
             viewModel?.resetErrorMessage(errorMessage: .top)
         }
@@ -106,7 +134,7 @@ class AuthSignInController: UIViewController {
         setupViews()
     }
 
-    @IBAction func passwordTextDidChange(_ sender: FormTextField) {
+    @IBAction func passwordTextDidChange(_ sender: UITextField) {
         credentialTextField.text = credentialTextField.text?.trimmingCharacters(in: .whitespaces)
         isValidPassword = (viewModel?.isValidPassword(password: credentialTextField.text))!
 
@@ -145,7 +173,12 @@ class AuthSignInController: UIViewController {
 
     @IBAction func goToSignUp(_ sender: Any) {
         if !(navigationController?.popToViewController(ofClass: AuthSignUpController.self))! {
-            let mainStoryboard = UIStoryboard(name: "Auth", bundle: nil)
+            var mainStoryboard: UIStoryboard
+            #if targetEnvironment(macCatalyst)
+            mainStoryboard = UIStoryboard(name: "Auth_Mac", bundle: nil)
+            #else
+            mainStoryboard = UIStoryboard(name: "Auth", bundle: nil)
+            #endif
             if let viewController = mainStoryboard.instantiateViewController(withIdentifier: "SignUp") as? AuthSignUpController {
                 viewController.viewModel = self.viewModel
                 navigationController?.pushViewController(viewController, animated: true)

@@ -24,6 +24,7 @@ class CreateLinkController: UITableViewController {
     @IBOutlet weak var customAddressTextField: FormTextField!
     @IBOutlet weak var passwordTextField: FormTextField!
     @IBOutlet weak var expirationDateTextField: FormTextField!
+    @IBOutlet weak var maxAllowedClicksTextField: UITextField!
 
     @IBOutlet weak var saveButton: UIBarButtonItem!
 
@@ -120,7 +121,8 @@ class CreateLinkController: UITableViewController {
         activityIndicator.startAnimating()
 
         let shortURL = customAddressTextField.text!.isEmpty ? "" : customAddressTextField.text
-        let newLink = Link(title: longURLTextField.text!, originalURL: longURLTextField.text!, shortURL: shortURL!, expirationDate: expireDate!, password: passwordTextField.text!)
+        let maxClicks = Int(maxAllowedClicksTextField.text ?? "-1")
+        let newLink = Link(title: longURLTextField.text!, originalURL: longURLTextField.text!, shortURL: shortURL!, expirationDate: expireDate!, password: passwordTextField.text!, maxAllowedClicks: maxClicks)
 
         viewModel?.createNewLink(for: newLink, completion: { (finished, success, newLink) in
             if finished && success {
@@ -131,6 +133,26 @@ class CreateLinkController: UITableViewController {
                 let navigationController = splitViewController?.masterViewController as? UINavigationController
                 let linksContoller = navigationController?.topViewController as? LinksController
                 linksContoller!.refresh(linksContoller!.refreshControl!)
+
+                let content = UNMutableNotificationContent()
+                content.title = "Your tinitron link has expired!"
+                content.body = "'\(newLink!.shortURL)' has expired an can only be used to view its analytics."
+
+                // Create the trigger as a repeating event.
+                let trigger = UNCalendarNotificationTrigger(
+                    dateMatching: (newLink?.expirationDate.get(.day, .month, .year))!, repeats: false)
+                // Create the request
+                let uuidString = newLink?.shortURL
+                let request = UNNotificationRequest(identifier: uuidString!,
+                            content: content, trigger: trigger)
+
+                // Schedule the request with the system.
+                let notificationCenter = UNUserNotificationCenter.current()
+                notificationCenter.add(request) { (error) in
+                   if error != nil {
+                      // Handle any errors.
+                   }
+                }
 
                 self.dismiss(animated: true, completion: nil)
             } else if finished && !success {

@@ -10,7 +10,7 @@
         <!--Analytics-->
         <scene sceneID="q6t-gA-zur">
             <objects>
-                <splitViewController id="dLd-6D-ys2" customClass="PrimarySplitViewController" customModule="Tinitron" customModuleProvider="target" sceneMemberID="viewController">
+                <splitViewController id="dLd-6D-ys2" customClass="PrimarySplitViewController" customModule="tinitron" customModuleProvider="target" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title="Analytics" image="chart.pie" catalog="system" selectedImage="chart.pie.fill" id="Xs9-Uo-KSU"/>
                     <navigationItem key="navigationItem" id="Gso-S8-kTc"/>
                     <simulatedTabBarMetrics key="simulatedBottomBarMetrics"/>
@@ -26,7 +26,7 @@
         <!--Link Analytics-->
         <scene sceneID="Jbp-nb-cnl">
             <objects>
-                <tableViewController storyboardIdentifier="LinkAnalytics" useStoryboardIdentifierAsRestorationIdentifier="YES" id="5Nr-Ln-cS4" customClass="LinkAnalyticsController" customModule="Tinitron" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="LinkAnalytics" useStoryboardIdentifierAsRestorationIdentifier="YES" id="5Nr-Ln-cS4" customClass="LinkAnalyticsController" customModule="tinitron" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="0Fi-PT-RCp">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -203,7 +203,7 @@
                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Dhx-Qb-VA1">
                                                     <rect key="frame" x="15" y="40" width="313" height="20"/>
                                                     <subviews>
-                                                        <view multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="5ad-Hy-P9W" customClass="RoundedView" customModule="Tinitron" customModuleProvider="target">
+                                                        <view multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="5ad-Hy-P9W" customClass="RoundedView" customModule="tinitron" customModuleProvider="target">
                                                             <rect key="frame" x="0.0" y="0.0" width="35" height="20"/>
                                                             <subviews>
                                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Max" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="TuF-iI-urX">
@@ -266,7 +266,7 @@
                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="H8y-Hr-SaU">
                                                     <rect key="frame" x="15" y="99" width="313" height="20"/>
                                                     <subviews>
-                                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="oRe-Vk-ue2" customClass="RoundedView" customModule="Tinitron" customModuleProvider="target">
+                                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="oRe-Vk-ue2" customClass="RoundedView" customModule="tinitron" customModuleProvider="target">
                                                             <rect key="frame" x="0.0" y="0.0" width="35" height="20"/>
                                                             <subviews>
                                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Min" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="67r-VL-xb4">
@@ -626,7 +626,7 @@
         <!--Links-->
         <scene sceneID="qcm-cR-3fV">
             <objects>
-                <tableViewController storyboardIdentifier="Analytics" title="Links" useStoryboardIdentifierAsRestorationIdentifier="YES" id="yhr-th-r1Q" customClass="AnalyticsController" customModule="Tinitron" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="Analytics" title="Links" useStoryboardIdentifierAsRestorationIdentifier="YES" id="yhr-th-r1Q" customClass="AnalyticsController" customModule="tinitron" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="GeI-D7-Ncx">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

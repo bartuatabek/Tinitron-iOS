@@ -35,6 +35,7 @@
 		8D772D4724425DB400BFFF01 /* AccountController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D772D4624425DB400BFFF01 /* AccountController.swift */; };
 		8D772D4A2442632D00BFFF01 /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D772D492442632D00BFFF01 /* Link.swift */; };
 		8D772D4C2442670500BFFF01 /* LinksController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D772D4B2442670500BFFF01 /* LinksController.swift */; };
+		8D7D59692479C0AD00E7474C /* Auth_Mac.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8D7D59682479C0AD00E7474C /* Auth_Mac.storyboard */; };
 		8D81D6C5243D005F0021AE7E /* FormTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D81D6C4243D005F0021AE7E /* FormTextField.swift */; };
 		8D81D6C7243D2B0E0021AE7E /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8D81D6C6243D2B0E0021AE7E /* GoogleService-Info.plist */; };
 		8D8620EC2440FA9600321434 /* AccountDetailsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D8620EB2440FA9600321434 /* AccountDetailsController.swift */; };
@@ -50,6 +51,10 @@
 		8DCF2E55244517DE0011B9E3 /* LinkDetailsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DCF2E54244517DE0011B9E3 /* LinkDetailsController.swift */; };
 		8DD834D0243E05950070D73B /* Home.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8DD834CF243E05950070D73B /* Home.storyboard */; };
 		8DED2EB2245234F000F78EF5 /* LinksController+Updating.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DED2EB1245234EF00F78EF5 /* LinksController+Updating.swift */; };
+		8DF7B00424786A3200F8EA09 /* SettingsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DF7B00324786A3200F8EA09 /* SettingsController.swift */; };
+		8DF7B0062478722300F8EA09 /* AppStoreReviewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DF7B0052478722300F8EA09 /* AppStoreReviewManager.swift */; };
+		8DF7B0082478A11A00F8EA09 /* QRCodeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DF7B0072478A11A00F8EA09 /* QRCodeController.swift */; };
+		8DF7B00A2478A46500F8EA09 /* QRCodeActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DF7B0092478A46500F8EA09 /* QRCodeActivity.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -66,7 +71,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		8D018082243CF56A00AAC604 /* Tinitron.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tinitron.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D018082243CF56A00AAC604 /* tinitron.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tinitron.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8D018085243CF56A00AAC604 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		8D018087243CF56A00AAC604 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		8D01808C243CF56A00AAC604 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -95,6 +100,7 @@
 		8D772D4624425DB400BFFF01 /* AccountController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountController.swift; sourceTree = "<group>"; };
 		8D772D492442632D00BFFF01 /* Link.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
 		8D772D4B2442670500BFFF01 /* LinksController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinksController.swift; sourceTree = "<group>"; };
+		8D7D59682479C0AD00E7474C /* Auth_Mac.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Auth_Mac.storyboard; sourceTree = "<group>"; };
 		8D81D6C4243D005F0021AE7E /* FormTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FormTextField.swift; sourceTree = "<group>"; };
 		8D81D6C6243D2B0E0021AE7E /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		8D8620EB2440FA9600321434 /* AccountDetailsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDetailsController.swift; sourceTree = "<group>"; };
@@ -112,6 +118,10 @@
 		8DD834CF243E05950070D73B /* Home.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Home.storyboard; sourceTree = "<group>"; };
 		8DED2EB1245234EF00F78EF5 /* LinksController+Updating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LinksController+Updating.swift"; sourceTree = "<group>"; };
 		8DF1EC4E24508FDE0060201A /* NotificationCenter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NotificationCenter.framework; path = System/Library/Frameworks/NotificationCenter.framework; sourceTree = SDKROOT; };
+		8DF7B00324786A3200F8EA09 /* SettingsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsController.swift; sourceTree = "<group>"; };
+		8DF7B0052478722300F8EA09 /* AppStoreReviewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreReviewManager.swift; sourceTree = "<group>"; };
+		8DF7B0072478A11A00F8EA09 /* QRCodeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeController.swift; sourceTree = "<group>"; };
+		8DF7B0092478A46500F8EA09 /* QRCodeActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeActivity.swift; sourceTree = "<group>"; };
 		C25F6474B09FAEB9F8D9466D /* Pods-Tinitron.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tinitron.release.xcconfig"; path = "Target Support Files/Pods-Tinitron/Pods-Tinitron.release.xcconfig"; sourceTree = "<group>"; };
 		C947C60288A3DAE8D299808B /* Pods_Tinitron.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Tinitron.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DA2AB925A4E0DFEAA9F6C89E /* Pods-Tinitron.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tinitron.debug.xcconfig"; path = "Target Support Files/Pods-Tinitron/Pods-Tinitron.debug.xcconfig"; sourceTree = "<group>"; };
@@ -162,7 +172,7 @@
 		8D018083243CF56A00AAC604 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8D018082243CF56A00AAC604 /* Tinitron.app */,
+				8D018082243CF56A00AAC604 /* tinitron.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -227,6 +237,7 @@
 				8D729555243DEAE600030233 /* AuthSignUpController.swift */,
 				8D729556243DEAE700030233 /* AuthResetController.swift */,
 				8D72955B243DEBB700030233 /* Auth.storyboard */,
+				8D7D59682479C0AD00E7474C /* Auth_Mac.storyboard */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -238,6 +249,7 @@
 				8D0E6CEB244E4D3A00E0C468 /* LinksViewModel.swift */,
 				8D2C1D0B244CDB0B0081D28A /* Links Table */,
 				8DCF2E54244517DE0011B9E3 /* LinkDetailsController.swift */,
+				8DF7B0072478A11A00F8EA09 /* QRCodeController.swift */,
 				8DCF2E522444E4E00011B9E3 /* CreateLinkController.swift */,
 				8D0E6CE9244E4B8C00E0C468 /* Links.storyboard */,
 			);
@@ -254,6 +266,8 @@
 				8DC8750A243F65D500B85C20 /* RoundImageView.swift */,
 				8D509209244D02E300B79344 /* RoundedView.swift */,
 				8D907832244F421B00B5C76F /* PrimarySplitViewController.swift */,
+				8DF7B0052478722300F8EA09 /* AppStoreReviewManager.swift */,
+				8DF7B0092478A46500F8EA09 /* QRCodeActivity.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -264,6 +278,7 @@
 				8D8620ED2441036000321434 /* AccountViewModel.swift */,
 				8D772D4624425DB400BFFF01 /* AccountController.swift */,
 				8D8620EB2440FA9600321434 /* AccountDetailsController.swift */,
+				8DF7B00324786A3200F8EA09 /* SettingsController.swift */,
 				8D0E6CF0244E5D5E00E0C468 /* AppearanceController.swift */,
 				8D915216244FB38800387A96 /* AboutController.swift */,
 				8D50920B244D143400B79344 /* Account.storyboard */,
@@ -302,7 +317,7 @@
 			);
 			name = Tinitron;
 			productName = Tinitron;
-			productReference = 8D018082243CF56A00AAC604 /* Tinitron.app */;
+			productReference = 8D018082243CF56A00AAC604 /* tinitron.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -351,6 +366,7 @@
 				8D509207244CFE4800B79344 /* Analytics.storyboard in Resources */,
 				8D01808F243CF56E00AAC604 /* Assets.xcassets in Resources */,
 				8D50920C244D143400B79344 /* Account.storyboard in Resources */,
+				8D7D59692479C0AD00E7474C /* Auth_Mac.storyboard in Resources */,
 				8D01808D243CF56A00AAC604 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -438,16 +454,20 @@
 				8D907833244F421B00B5C76F /* PrimarySplitViewController.swift in Sources */,
 				8D509210244D1C5C00B79344 /* LinkAnalytics.swift in Sources */,
 				8DC8750B243F65D500B85C20 /* RoundImageView.swift in Sources */,
+				8DF7B0062478722300F8EA09 /* AppStoreReviewManager.swift in Sources */,
 				8D729559243DEAE700030233 /* AuthResetController.swift in Sources */,
 				8DCF2E55244517DE0011B9E3 /* LinkDetailsController.swift in Sources */,
 				8D8620EC2440FA9600321434 /* AccountDetailsController.swift in Sources */,
 				8D0E6CF1244E5D5E00E0C468 /* AppearanceController.swift in Sources */,
 				8D729558243DEAE700030233 /* AuthSignUpController.swift in Sources */,
 				8D2C1D08244CD0AA0081D28A /* LinksController+Restore.swift in Sources */,
+				8DF7B0082478A11A00F8EA09 /* QRCodeController.swift in Sources */,
 				8D72955E243DF87600030233 /* AuthHomeController.swift in Sources */,
+				8DF7B00A2478A46500F8EA09 /* QRCodeActivity.swift in Sources */,
 				8D2C1D0A244CD4440081D28A /* ResultsTableController.swift in Sources */,
 				8D8620EE2441036000321434 /* AccountViewModel.swift in Sources */,
 				8D50920A244D02E300B79344 /* RoundedView.swift in Sources */,
+				8DF7B00424786A3200F8EA09 /* SettingsController.swift in Sources */,
 				8DCD2417244DDE8B00C71FE9 /* DayAxisValueFormatter.swift in Sources */,
 				8D915217244FB38800387A96 /* AboutController.swift in Sources */,
 				8D81D6C5243D005F0021AE7E /* FormTextField.swift in Sources */,
@@ -600,7 +620,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Tinitron/Tinitron.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_TEAM = 74VAU57J78;
 				INFOPLIST_FILE = Tinitron/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -608,9 +628,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = cf.infinitus.Tinitron;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = tinitron;
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -625,7 +645,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Tinitron/Tinitron.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_TEAM = 74VAU57J78;
 				INFOPLIST_FILE = Tinitron/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -633,9 +653,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = cf.infinitus.Tinitron;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = tinitron;
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

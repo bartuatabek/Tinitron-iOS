@@ -38,6 +38,14 @@ class LinksController: UITableViewController {
     // MARK: - ViewController Functions
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        #if targetEnvironment(macCatalyst)
+        UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.forEach { windowScene in
+            windowScene.sizeRestrictions?.minimumSize = CGSize(width: 1200, height: 800)
+            windowScene.sizeRestrictions?.maximumSize = CGSize(width: windowScene.screen.nativeBounds.size.width, height: CGFloat.greatestFiniteMagnitude)
+        }
+        #endif
+
         self.viewModel = LinksViewModel()
         self.viewModel?.controller = self
 
@@ -79,6 +87,32 @@ class LinksController: UITableViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+
+        #if targetEnvironment(macCatalyst)
+        func bitSet(_ bits: [Int]) -> UInt {
+            return bits.reduce(0) { $0 | (1 << $1) }
+        }
+
+        func property(_ property: String, object: NSObject, set: [Int], clear: [Int]) {
+            if let value = object.value(forKey: property) as? UInt {
+                object.setValue((value & ~bitSet(clear)) | bitSet(set), forKey: property)
+            }
+        }
+
+        // disable full-screen button
+        if  let NSApplication = NSClassFromString("NSApplication") as? NSObject.Type,
+            let sharedApplication = NSApplication.value(forKeyPath: "sharedApplication") as? NSObject,
+            let windows = sharedApplication.value(forKeyPath: "windows") as? [NSObject] {
+            for window in windows {
+                let resizable = 3
+                property("styleMask", object: window, set: [resizable], clear: [])
+                let fullScreenPrimary = 7
+                let fullScreenAuxiliary = 8
+                let fullScreenNone = 9
+                property("collectionBehavior", object: window, set: [fullScreenPrimary, fullScreenAuxiliary], clear: [fullScreenNone])
+            }
+        }
+        #endif
 
         // Restore the searchController's active state.
         if restoredState.wasActive {
@@ -159,6 +193,10 @@ class LinksController: UITableViewController {
         filter.toggle()
         self.navigationItem.rightBarButtonItems?[1].image = filter ? UIImage(systemName: "line.horizontal.3.decrease.circle.fill") : UIImage(systemName: "line.horizontal.3.decrease.circle")
 
+        filterLinks()
+    }
+
+    fileprivate func filterLinks() {
         if filter {
             var expiredLinks = [Link]()
 
@@ -249,16 +287,27 @@ class LinksController: UITableViewController {
                 sender.endRefreshing()
                 self.view.hideSkeleton(transition: .crossDissolve(0.25))
                 self.tableView.reloadData()
+                AppStoreReviewManager.requestReviewIfAppropriate()
             }
         })
     }
 
     fileprivate func loadLinks() {
         viewModel?.fetchLinks(pageNo: currentPage, completion: { (finished, success, pageNumber, totalPages, fetchedLinks) in
+            let deleteExpiredLinks = self.defaults.bool(forKey: Auth.auth().currentUser!.uid + "DeleteExpired")
+
             if finished && success {
                 for link in fetchedLinks! {
                     if !(self.viewModel?.links.contains(link))! {
-                        self.viewModel?.links.append(link)
+                        if deleteExpiredLinks && link.isExpired {
+                            self.viewModel?.deleteLinks(links: [link.shortURL], completion: { (_, success) in
+                                if success {
+                                    print("Expired link deleted.")
+                                }
+                            })
+                        } else {
+                            self.viewModel?.links.append(link)
+                        }
                     }
                 }
 
@@ -274,6 +323,10 @@ class LinksController: UITableViewController {
             }
 
             if finished {
+                if !self.filter {
+                    self.unfilteredSections = self.sections
+                }
+                self.filterLinks()
                 self.tableView.reloadData()
             }
         })
@@ -328,6 +381,7 @@ extension LinksController {
         tableView.deselectRow(at: indexPath, animated: true)
     }
 
+    // swiftlint:disable function_body_length
     override func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         var pin: UIContextualAction
         var pinnedItems = defaults.stringArray(forKey: Auth.auth().currentUser!.uid) ?? [String]()
@@ -371,7 +425,17 @@ extension LinksController {
         copyLink.backgroundColor = .darkGray
         copyLink.image = UIImage(systemName: "rectangle.on.rectangle")
 
-        let swipeActionConfig = UISwipeActionsConfiguration(actions: [copyLink, pin])
+        let showQRCode = UIContextualAction(style: .normal, title: "Show QR Code") { (_, _, completionHandler) in
+            print("index path of edit: \(indexPath)")
+            let qrCodeController = self.storyboard?.instantiateViewController(withIdentifier: "LinkQRCode") as! QRCodeController
+            qrCodeController.shortURL = self.sections[indexPath.section][indexPath.row].shortURL
+            self.present(qrCodeController, animated: true, completion: nil)
+            completionHandler(true)
+        }
+        showQRCode.backgroundColor = .systemBlue
+        showQRCode.image = UIImage(systemName: "qrcode")
+
+        let swipeActionConfig = UISwipeActionsConfiguration(actions: [copyLink, showQRCode, pin])
         return swipeActionConfig
     }
 
@@ -570,12 +634,26 @@ extension LinksController {
                     UIPasteboard.general.string = "tinitron.ml/" + self.sections[indexPath.section][indexPath.row].shortURL
                 }
 
+                let qrAction = UIAction(
+                    title: "Show QR Code",
+                    image: UIImage(systemName: "qrcode")) { _ in
+                        let qrCodeController = self.storyboard?.instantiateViewController(withIdentifier: "LinkQRCode") as! QRCodeController
+                        qrCodeController.shortURL = self.sections[indexPath.section][indexPath.row].shortURL
+                        self.present(qrCodeController, animated: true, completion: nil)
+                }
+
                 let shareAction = UIAction(
                     title: "Share",
                     image: UIImage(systemName: "square.and.arrow.up")) { _ in
                         if let url = URL(string: "https://" + self.sections[indexPath.section][indexPath.row].shortURL) {
+                            let qrItem = QRCodeActivity(title: "Show QR Code", image: UIImage(systemName: "qrcode")) { _ in
+                                let qrCodeController = self.storyboard?.instantiateViewController(withIdentifier: "LinkQRCode") as! QRCodeController
+                                qrCodeController.shortURL = self.sections[indexPath.section][indexPath.row].shortURL
+                                self.present(qrCodeController, animated: true, completion: nil)
+                            }
+
                             let items: [Any] = [url]
-                            let activityController = UIActivityViewController(activityItems: items, applicationActivities: nil)
+                            let activityController = UIActivityViewController(activityItems: items, applicationActivities: [qrItem])
                             activityController.popoverPresentationController?.sourceView = tableView.cellForRow(at: indexPath)?.contentView
                             self.present(activityController, animated: true)
                         }
@@ -614,9 +692,9 @@ extension LinksController {
                 }
 
                 if !self.sections[indexPath.section][indexPath.row].isExpired {
-                    return UIMenu(title: "", image: nil, children: [pinAction, copyAction, shareAction, expireAction, deleteAction])
+                    return UIMenu(title: "", image: nil, children: [pinAction, copyAction, qrAction, shareAction, expireAction, deleteAction])
                 } else {
-                    return UIMenu(title: "", image: nil, children: [pinAction, copyAction, shareAction, deleteAction])
+                    return UIMenu(title: "", image: nil, children: [pinAction, copyAction, qrAction, shareAction, deleteAction])
                 }
       }
     }

@@ -120,6 +120,7 @@ class AnalyticsController: UITableViewController {
                 self.view.hideSkeleton(transition: .crossDissolve(0.25))
                 self.tableView.scrollRectToVisible(CGRect(origin: CGPoint(x: 0, y: 0), size: UIScreen.main.bounds.size), animated: true)
                 self.tableView.reloadData()
+                AppStoreReviewManager.requestReviewIfAppropriate()
             }
         })
     }

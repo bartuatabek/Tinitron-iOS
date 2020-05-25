@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2020 Tinitron App. All rights reserved.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
@@ -28,6 +26,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Tiniton requires access to your camera in order to take a profile picture from your camera.</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2020 Tinitron App. All rights reserved.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Tiniton requires access to your photo library in order to upload a profile picture.</string>
 	<key>UIApplicationSceneManifest</key>
@@ -84,6 +84,8 @@
 	<array>
 		<string>armv7</string>
 	</array>
+	<key>UIRequiresFullScreen</key>
+	<false/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
