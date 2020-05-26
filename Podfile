@@ -15,6 +15,7 @@ target 'Tinitron' do
   pod 'SwiftLint'
   pod 'SwiftyJSON'
   pod 'Kingfisher'
+  pod 'WhatsNewKit'
   pod 'LayoutHelper'
   pod 'SkeletonView'
   pod 'ReactiveCocoa'

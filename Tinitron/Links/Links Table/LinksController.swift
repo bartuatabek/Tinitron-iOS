@@ -8,6 +8,7 @@
 
 import UIKit
 import Firebase
+import WhatsNewKit
 import SkeletonView
 
 class LinksController: UITableViewController {
@@ -83,6 +84,79 @@ class LinksController: UITableViewController {
         tableView.restore()
         self.tableView.scroll(to: .top, animated: true)
         refresh(refreshControl!)
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // Initialize WhatsNew
+        let whatsNew = WhatsNew(
+            // The Title
+            title: "What's New in tinitron",
+            // The features you want to showcase
+            items: [
+                WhatsNew.Item(
+                    title: "All New",
+                    subtitle: "A completely optimized app for all platforms that makes it easier than ever to create and view short links.",
+                    image: UIImage(systemName: "sparkles")?.withTintColor(.systemYellow)
+                ),
+                WhatsNew.Item(
+                    title: "Maximum Allowed Clicks",
+                    subtitle: "Set the maximum number of clicks on a link and when a link reaches its limit it will automatically expire",
+                    image: UIImage(systemName: "timer")?.withTintColor(.systemRed)
+                ),
+                WhatsNew.Item(
+                    title: "Expire Notifications",
+                    subtitle: "When a link is about the expire, tinitron will now send a notification.",
+                    image: UIImage(systemName: "app.badge")?.withTintColor(.systemPink)
+                ),
+                WhatsNew.Item(
+                    title: "Quick Codes",
+                    subtitle: "Share your short links with the new Quick QR Codes.",
+                    image: UIImage(systemName: "qrcode")?.withTintColor(.systemBlue)
+                )
+            ]
+        )
+
+        // Configuration with predefine `red` Theme which auto adapts to the UserInterfaceStyle
+        // in order to support iOS 13 Dark-Mode
+        var configuration = WhatsNewViewController.Configuration(
+            theme: .blue
+        )
+
+        configuration.itemsView.subtitleColor = UIColor.secondaryLabel
+        configuration.itemsView.titleFont = .systemFont(ofSize: 15, weight: .semibold)
+        configuration.itemsView.subtitleFont = .systemFont(ofSize: 15)
+        configuration.itemsView.imageSize = .fixed(height: 40)
+        configuration.itemsView.autoTintImage = false
+        configuration.backgroundColor = .systemBackground
+        configuration.apply(animation: .slideUp)
+        configuration.completionButton = WhatsNewViewController.CompletionButton(
+            title: "Continue",
+            action: .dismiss,
+            hapticFeedback: .notification(.success)
+        )
+
+        // Initialize WhatsNewVersionStore
+        let versionStore: WhatsNewVersionStore = KeyValueWhatsNewVersionStore()
+
+        // Passing a WhatsNewVersionStore to the initializer
+        // will give you an optional WhatsNewViewController
+        let whatsNewViewController: WhatsNewViewController? = WhatsNewViewController(
+            whatsNew: whatsNew,
+            configuration: configuration,
+            versionStore: versionStore
+        )
+        
+        // Verify WhatsNewViewController is available
+        guard let viewController = whatsNewViewController else {
+            // The user has already seen the WhatsNew-Screen for the current Version of your app
+            return
+        }
+
+        if #available(iOS 13.0, *) {
+            viewController.isModalInPresentation = true
+        }
+        self.present(viewController, animated: true)
     }
 
     override func viewDidAppear(_ animated: Bool) {
